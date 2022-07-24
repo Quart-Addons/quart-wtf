@@ -56,11 +56,11 @@ class QuartForm(Form):
             """
             return current_app.config.get("WTF_CSRF_TIME_LIMIT", 3600)
 
-    def __init__(self, *args, formdata=_Auto, **kwargs) -> None:
-        super().__init__(formdata, *args, **kwargs)
+    def __init__(self, formdata=_Auto, **kwargs) -> None:
+        super().__init__(formdata=formdata, **kwargs)
 
     @classmethod
-    async def from_formdata(cls, *args, formdata=_Auto, **kwargs):
+    async def from_formdata(cls, formdata=_Auto, **kwargs):
         """
         Method to support initializing from submitted formdata.
         """
@@ -70,7 +70,7 @@ class QuartForm(Form):
             else:
                 formdata = None
 
-        return cls(formdata=formdata, *args, **kwargs)
+        return cls(formdata=formdata, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:
         """
