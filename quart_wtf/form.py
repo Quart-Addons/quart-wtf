@@ -3,9 +3,11 @@ Quart-WTF Form
 """
 import asyncio
 
+from markupsafe import Markup
 from quart import current_app, session
 from wtforms import Form, ValidationError
 from wtforms.meta import DefaultMeta
+from wtforms.widgets import HiddenInput
 from werkzeug.utils import cached_property
 
 from .csrf import _QuartFormCSRF
@@ -132,3 +134,24 @@ class QuartForm(Form):
         """
         return self.is_submitted() and \
             await self.validate(extra_validators=extra_validators)
+
+    def hidden_fields(self, *fields):
+        """
+        Render the form's hidden fields in one call.
+        A field is considered hidden if it uses the
+        :class:`~wtforms.widgets.HiddenInput` widget.
+        If ``fields`` are given, only render the given fields that
+        are hidden.  If a string is passed, render the field with that
+        name if it exists.
+        """
+        def hidden_fields(fields):
+            for field in fields:
+                if isinstance(field, str):
+                    field = getattr(self, field, None)
+
+                if field is None or not isinstance(field.widget, HiddenInput):
+                    continue
+
+                yield field
+
+        return Markup("\n".join(str(field) for field in hidden_fields(fields or self)))
