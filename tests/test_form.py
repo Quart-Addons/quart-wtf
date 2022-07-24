@@ -2,6 +2,7 @@
 Tests the Quart-Form form class.
 """
 from io import BytesIO
+import pytest
 
 from quart import json, request
 from wtforms import FileField, HiddenField, IntegerField, StringField
@@ -21,7 +22,7 @@ class BasicForm(QuartForm):
 def test_populate_from_form(app, client):
     @app.route("/", methods=["POST"])
     async def index():
-        form = BasicForm()
+        form = await BasicForm.from_formdata()
         assert form.name.data == "form"
 
     client.post("/", data={"name": "form"})
@@ -29,8 +30,8 @@ def test_populate_from_form(app, client):
 
 def test_populate_from_files(app, client):
     @app.route("/", methods=["POST"])
-    def index():
-        form = BasicForm()
+    async def index():
+        form = await BasicForm.from_formdata()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "flask.png"
 
@@ -39,8 +40,8 @@ def test_populate_from_files(app, client):
 
 def test_populate_from_json(app, client):
     @app.route("/", methods=["POST"])
-    def index():
-        form = BasicForm()
+    async def index():
+        form = await BasicForm.from_formdata()
         assert form.name.data == "json"
 
     client.post("/", data=json.dumps({"name": "json"}), content_type="application/json")
@@ -48,7 +49,7 @@ def test_populate_from_json(app, client):
 
 def test_populate_manually(app, client):
     @app.route("/", methods=["POST"])
-    def index():
+    async def index():
         form = BasicForm(request.args)
         assert form.name.data == "args"
 
@@ -57,7 +58,7 @@ def test_populate_manually(app, client):
 
 def test_populate_none(app, client):
     @app.route("/", methods=["POST"])
-    def index():
+    async def index():
         form = BasicForm(None)
         assert form.name.data is None
 
@@ -66,8 +67,8 @@ def test_populate_none(app, client):
 
 def test_validate_on_submit(app, client):
     @app.route("/", methods=["POST"])
-    def index():
-        form = BasicForm()
+    async def index():
+        form = await BasicForm.from_formdata()
         assert form.is_submitted()
         assert not form.validate_on_submit()
         assert "name" in form.errors
@@ -77,15 +78,15 @@ def test_validate_on_submit(app, client):
 
 def test_no_validate_on_get(app, client):
     @app.route("/", methods=["GET", "POST"])
-    def index():
-        form = BasicForm()
+    async def index():
+        form = await BasicForm.from_formdata()
         assert not form.validate_on_submit()
         assert "name" not in form.errors
 
     client.get("/")
 
-
-def test_hidden_tag(req_ctx):
+@pytest.mark.asyncio
+async def test_hidden_tag(req_ctx):
     class Form(BasicForm):
         class Meta:
             csrf = True
@@ -93,37 +94,8 @@ def test_hidden_tag(req_ctx):
         key = HiddenField()
         count = IntegerField(widget=HiddenInput())
 
-    form = Form()
+    form = await Form.from_formdata()
     out = form.hidden_tag()
     assert all(x in out for x in ("csrf_token", "count", "key"))
     assert "avatar" not in out
     assert "csrf_token" not in form.hidden_tag("count", "key")
-
-
-def test_set_default_message_language(app, client):
-    @app.route("/default", methods=["POST"])
-    def default():
-        form = BasicForm()
-        assert not form.validate_on_submit()
-        assert "This field is required." in form.name.errors
-
-    client.post("/default", data={"name": "  "})
-
-    @app.route("/es", methods=["POST"])
-    def es():
-        app.config["WTF_I18N_ENABLED"] = False
-
-        class MyBaseForm(QuartForm):
-            class Meta:
-                csrf = False
-                locales = ["es"]
-
-        class NameForm(MyBaseForm):
-            name = StringField(validators=[DataRequired()])
-
-        form = NameForm()
-        assert form.meta.locales == ["es"]
-        assert not form.validate_on_submit()
-        assert "Este campo es obligatorio." in form.name.errors
-
-    client.post("/es", data={"name": "  "})
