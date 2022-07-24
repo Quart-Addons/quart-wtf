@@ -7,9 +7,10 @@ import hashlib
 import hmac
 import logging
 import os
+import typing as t
 from urllib.parse import urlparse
 
-from quart import Blueprint, current_app, g, request, session
+from quart import Quart, Blueprint, current_app, g, request, session
 from itsdangerous import BadData
 from itsdangerous import SignatureExpired
 from itsdangerous import URLSafeTimedSerializer
@@ -158,9 +159,9 @@ class _QuartFormCSRF(CSRF):
             raise
 
 class CSRFProtect:
-    """Enable CSRF protection globally for a Flask app.
+    """Enable CSRF protection globally for a Quart app.
     ::
-        app = Flask(__name__)
+        app = Quart(__name__)
         csrf = CSRFProtect(app)
     Checks the ``csrf_token`` field sent with forms, or the ``X-CSRFToken``
     header sent with JavaScript requests. Render the token in templates using
@@ -168,14 +169,14 @@ class CSRFProtect:
     See the :ref:`csrf` documentation.
     """
 
-    def __init__(self, app=None):
+    def __init__(self, app: t.Optional[Quart]=None):
         self._exempt_views = set()
         self._exempt_blueprints = set()
 
         if app:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: Quart):
         app.extensions["csrf"] = self
 
         app.config.setdefault("WTF_CSRF_ENABLED", True)
@@ -192,7 +193,7 @@ class CSRFProtect:
         app.context_processor(lambda: {"csrf_token": generate_csrf})
 
         @app.before_request
-        def csrf_protect():
+        async def csrf_protect():
             if not app.config["WTF_CSRF_ENABLED"]:
                 return
 
@@ -214,18 +215,18 @@ class CSRFProtect:
             if dest in self._exempt_views:
                 return
 
-            self.protect()
+            await self.protect()
 
-    def _get_csrf_token(self):
+    async def _get_csrf_token(self):
         # find the token in the form data
         field_name = current_app.config["WTF_CSRF_FIELD_NAME"]
-        base_token = request.form.get(field_name)
+        base_token = await request.form.get(field_name)
 
         if base_token:
             return base_token
 
         # if the form has a prefix, the name will be {prefix}-csrf_token
-        for key in request.form:
+        for key in await request.form:
             if key.endswith(field_name):
                 csrf_token = request.form[key]
 
@@ -241,12 +242,12 @@ class CSRFProtect:
 
         return None
 
-    def protect(self):
+    async def protect(self):
         if request.method not in current_app.config["WTF_CSRF_METHODS"]:
             return
 
         try:
-            validate_csrf(self._get_csrf_token())
+            validate_csrf(await self._get_csrf_token())
         except ValidationError as error:
             logger.info(error.args[0])
             self._error_response(error.args[0])
@@ -267,7 +268,7 @@ class CSRFProtect:
         ::
             @app.route('/some-view', methods=['POST'])
             @csrf.exempt
-            def some_view():
+            async def some_view():
                 ...
         ::
             bp = Blueprint(...)
@@ -294,7 +295,7 @@ class CSRFError(BadRequest):
     """Raise if the client sends invalid CSRF data with the request.
     Generates a 400 Bad Request response with the failure reason by default.
     Customize the response by registering a handler with
-    :meth:`flask.Flask.errorhandler`.
+    :meth:`quart.Quart.errorhandler`.
     """
 
     description = "CSRF validation failed."
