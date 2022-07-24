@@ -1,3 +1,6 @@
+"""
+Tests the Quart-Form form class.
+"""
 from io import BytesIO
 
 from quart import json, request
@@ -83,18 +86,18 @@ def test_no_validate_on_get(app, client):
 
 
 def test_hidden_tag(req_ctx):
-    class F(BasicForm):
+    class Form(BasicForm):
         class Meta:
             csrf = True
 
         key = HiddenField()
         count = IntegerField(widget=HiddenInput())
 
-    f = F()
-    out = f.hidden_tag()
+    form = Form()
+    out = form.hidden_tag()
     assert all(x in out for x in ("csrf_token", "count", "key"))
     assert "avatar" not in out
-    assert "csrf_token" not in f.hidden_tag("count", "key")
+    assert "csrf_token" not in form.hidden_tag("count", "key")
 
 
 def test_set_default_message_language(app, client):
