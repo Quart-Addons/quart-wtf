@@ -18,54 +18,54 @@ class BasicForm(QuartForm):
     name = StringField(validators=[DataRequired()])
     avatar = FileField()
 
-
-def test_populate_from_form(app, client):
+@pytest.mark.asyncio
+async def test_populate_from_form(app, client):
     @app.route("/", methods=["POST"])
     async def index():
         form = await BasicForm.from_formdata()
         assert form.name.data == "form"
 
-    client.post("/", data={"name": "form"})
+    await client.post("/", data={"name": "form"})
 
-
-def test_populate_from_files(app, client):
+@pytest.mark.asyncio
+async def test_populate_from_files(app, client):
     @app.route("/", methods=["POST"])
     async def index():
         form = await BasicForm.from_formdata()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "flask.png"
 
-    client.post("/", data={"name": "files", "avatar": (BytesIO(), "flask.png")})
+    await client.post("/", data={"name": "files", "avatar": (BytesIO(), "flask.png")})
 
-
-def test_populate_from_json(app, client):
+@pytest.mark.asyncio
+async def test_populate_from_json(app, client):
     @app.route("/", methods=["POST"])
     async def index():
         form = await BasicForm.from_formdata()
         assert form.name.data == "json"
 
-    client.post("/", data=json.dumps({"name": "json"}), content_type="application/json")
+    await client.post("/", data=json.dumps({"name": "json"}), content_type="application/json")
 
-
-def test_populate_manually(app, client):
+@pytest.mark.asyncio
+async def test_populate_manually(app, client):
     @app.route("/", methods=["POST"])
     async def index():
         form = BasicForm(request.args)
         assert form.name.data == "args"
 
-    client.post("/", query_string={"name": "args"})
+    await client.post("/", query_string={"name": "args"})
 
-
-def test_populate_none(app, client):
+@pytest.mark.asyncio
+async def test_populate_none(app, client):
     @app.route("/", methods=["POST"])
     async def index():
         form = BasicForm(None)
         assert form.name.data is None
 
-    client.post("/", data={"name": "ignore"})
+    await client.post("/", data={"name": "ignore"})
 
-
-def test_validate_on_submit(app, client):
+@pytest.mark.asyncio
+async def test_validate_on_submit(app, client):
     @app.route("/", methods=["POST"])
     async def index():
         form = await BasicForm.from_formdata()
@@ -73,17 +73,17 @@ def test_validate_on_submit(app, client):
         assert not form.validate_on_submit()
         assert "name" in form.errors
 
-    client.post("/")
+    await client.post("/")
 
-
-def test_no_validate_on_get(app, client):
+@pytest.mark.asyncio
+async def test_no_validate_on_get(app, client):
     @app.route("/", methods=["GET", "POST"])
     async def index():
         form = await BasicForm.from_formdata()
         assert not form.validate_on_submit()
         assert "name" not in form.errors
 
-    client.get("/")
+    await client.get("/")
 
 @pytest.mark.asyncio
 async def test_hidden_tag(req_ctx):
