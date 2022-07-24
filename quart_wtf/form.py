@@ -8,6 +8,7 @@ from wtforms import Form, ValidationError
 from wtforms.meta import DefaultMeta
 from werkzeug.utils import cached_property
 
+from .csrf import _QuartFormCSRF
 from .utils import _is_submitted, _get_formdata
 
 _Auto = object()
@@ -22,7 +23,7 @@ class QuartForm(Form):
         """
         Meta class for Quart specific subclass of WTForms.
         """
-        csrf_class = None
+        csrf_class = _QuartFormCSRF
         csrf_context = session
 
         @cached_property
