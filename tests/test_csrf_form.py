@@ -83,7 +83,6 @@ async def test_form_csrf(app, client, app_ctx):
     response = await client.post("/", data={"csrf_token": g.csrf_token})
     assert response.get_data(as_text=True) == "good"
 
-@pytest.mark.asyncio
 async def test_validate_error_logged(req_ctx, monkeypatch):
     from quart_wtf.csrf import logger
 

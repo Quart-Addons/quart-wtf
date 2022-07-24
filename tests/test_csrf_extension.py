@@ -28,9 +28,10 @@ def csrf(app):
     return app.extensions["csrf"]
 
 @pytest.mark.asyncio
-async def test_render_token(req_ctx):
-    token = generate_csrf()
-    assert await render_template_string("{{ csrf_token() }}") == token
+async def test_render_token(app):
+    async with app.test_request_context("/"):
+        token = generate_csrf()
+        assert await render_template_string("{{ csrf_token() }}") == token
 
 @pytest.mark.asyncio
 async def test_protect(app, client, app_ctx):

@@ -24,7 +24,7 @@ async def app_ctx(app):
 
 @pytest_asyncio.fixture
 async def req_ctx(app):
-    async with app.test_request_context() as ctx:
+    async with app.test_request_context("/") as ctx:
         yield ctx
 
 @pytest_asyncio.fixture

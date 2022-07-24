@@ -44,7 +44,7 @@ async def test_populate_from_json(app, client):
         form = await BasicForm.from_formdata()
         assert form.name.data == "json"
 
-    await client.post("/", data=json.dumps({"name": "json"}), content_type="application/json")
+    await client.post("/", data=json.dumps({"name": "json"}))
 
 @pytest.mark.asyncio
 async def test_populate_manually(app, client):
@@ -86,7 +86,7 @@ async def test_no_validate_on_get(app, client):
     await client.get("/")
 
 @pytest.mark.asyncio
-async def test_hidden_tag(req_ctx):
+async def test_hidden_tag(app):
     class Form(BasicForm):
         class Meta:
             csrf = True
@@ -94,8 +94,9 @@ async def test_hidden_tag(req_ctx):
         key = HiddenField()
         count = IntegerField(widget=HiddenInput())
 
-    form = await Form.from_formdata()
-    out = form.hidden_tag()
-    assert all(x in out for x in ("csrf_token", "count", "key"))
-    assert "avatar" not in out
-    assert "csrf_token" not in form.hidden_tag("count", "key")
+    async with app.test_request_context("/"):
+        form = await Form.from_formdata()
+        out = form.hidden_tag()
+        assert all(x in out for x in ("csrf_token", "count", "key"))
+        assert "avatar" not in out
+        assert "csrf_token" not in form.hidden_tag("count", "key")
