@@ -135,7 +135,7 @@ class QuartForm(Form):
         return self.is_submitted() and \
             await self.validate(extra_validators=extra_validators)
 
-    def hidden_fields(self, *fields):
+    def hidden_tag(self, *fields):
         """
         Render the form's hidden fields in one call.
         A field is considered hidden if it uses the
