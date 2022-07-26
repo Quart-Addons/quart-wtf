@@ -60,7 +60,8 @@ async def test_protect(app, client, app_ctx):
 
 @pytest.mark.asyncio
 async def test_same_origin(client):
-    token = await client.get("/").headers["X-CSRF-Token"]
+    response = await client.get("/")
+    token = response.headers["X-CSRF-Token"]
     response = await client.post(
         "/", base_url="https://localhost", headers={"X-CSRF-Token": token}
     )
@@ -106,9 +107,10 @@ async def test_form_csrf_short_circuit(app, client):
         # don't pass the token, then validate the form
         # this would fail if CSRFProtect didn't run
         form = QuartForm(None)
-        assert form.validate()
-
-    token = await client.get("/").headers["X-CSRF-Token"]
+        assert await form.validate()
+    response = await client.get("/")
+    token = response.headers["X-CSRF-Token"]
+    print(token)
     response = await client.post("/skip", headers={"X-CSRF-Token": token})
     assert response.status_code == 200
 

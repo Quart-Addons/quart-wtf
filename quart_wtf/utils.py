@@ -27,5 +27,5 @@ async def _get_formdata() -> CombinedMultiDict | MultiDict | ImmutableMultiDict 
         return await request.form
     elif request.is_json:
         return ImmutableMultiDict(await request.get_json())
-    else:
-        return None
+
+    return None

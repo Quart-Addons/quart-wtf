@@ -13,7 +13,7 @@ class Quart(_Quart):
         return await super().make_response(result)
 
 @pytest.fixture
-def app():
+def app() -> Quart:
     app = Quart(__name__)
     return app
 

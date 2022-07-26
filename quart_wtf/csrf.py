@@ -228,7 +228,7 @@ class CSRFProtect:
         # if the form has a prefix, the name will be {prefix}-csrf_token
         for key in await request.form:
             if key.endswith(field_name):
-                csrf_token = request.form[key]
+                csrf_token = (await request.form)[key]
 
                 if csrf_token:
                     return csrf_token
