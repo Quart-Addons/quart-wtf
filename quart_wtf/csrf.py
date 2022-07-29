@@ -177,6 +177,9 @@ class CSRFProtect:
             self.init_app(app)
 
     def init_app(self, app: Quart):
+        """
+        Initialize the `CSRFProtect` class.
+        """
         app.extensions["csrf"] = self
 
         app.config.setdefault("WTF_CSRF_ENABLED", True)
@@ -220,13 +223,13 @@ class CSRFProtect:
     async def _get_csrf_token(self):
         # find the token in the form data
         field_name = current_app.config["WTF_CSRF_FIELD_NAME"]
-        base_token = await request.form.get(field_name)
+        base_token = (await request.form).get(field_name)
 
         if base_token:
             return base_token
 
         # if the form has a prefix, the name will be {prefix}-csrf_token
-        for key in await request.form:
+        for key in (await request.form):
             if key.endswith(field_name):
                 csrf_token = (await request.form)[key]
 

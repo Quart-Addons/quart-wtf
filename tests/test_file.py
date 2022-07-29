@@ -9,52 +9,62 @@ from wtforms import FileField as BaseFileField
 from quart_wtf import QuartForm
 from quart_wtf.file import FileAllowed, FileField, FileRequired, FileSize
 
-@pytest.fixture
-def form(req_ctx):
-    class UploadForm(QuartForm):
+class UploadForm(QuartForm):
+    class Meta:
+        csrf = False
+    
+    file = FileField() 
+
+
+def test_process_formdata():
+    formdata = MultiDict((("file", FileStorage()),))
+    form = UploadForm(formdata=formdata)
+    assert form.file.data is None 
+    formdata = MultiDict((("file", FileStorage(filename="real")),))
+    form = UploadForm(formdata=formdata)
+    assert form.file.data is not None
+
+@pytest.mark.asyncio
+async def test_file_required(app):
+    class UploadFormRequired(QuartForm):
         class Meta:
             csrf = False
+        file = FileField(validators=[FileRequired()])
 
-        file = FileField()
+    async with app.test_request_context("/"):
+        form = await UploadFormRequired.from_formdata()
+        assert not await form.validate()
+        assert form.file.errors[0] == "This field is required."
 
-    return UploadForm
+        form = await UploadFormRequired.from_formdata(file="not a file")
+        assert not await form.validate()
+        assert form.file.errors[0] == "This field is required."
 
-def test_process_formdata(form):
-    assert form(MultiDict((("file", FileStorage()),))).file.data is None
-    assert (
-        form(MultiDict((("file", FileStorage(filename="real")),))).file.data is not None
-    )
+        form = await UploadFormRequired.from_formdata(file=FileStorage())
+        assert not await form.validate()
 
-@pytest.mark.asyncio
-async def test_file_required(form):
-    form.file.kwargs["validators"] = [FileRequired()]
-    f = await form.from_formdata()
-    assert not await f.validate()
-    assert f.file.errors[0] == "This field is required."
-
-    f = form(file="not a file")
-    assert not await f.validate()
-    assert f.file.errors[0] == "This field is required."
-
-    f = form(file=FileStorage())
-    assert not await f.validate()
-
-    f = form(file=FileStorage(filename="real"))
-    assert await f.validate()
+        form = await UploadFormRequired.from_formdata(file=FileStorage(filename="real"))
+        assert not await form.validate()
 
 @pytest.mark.asyncio
-async def test_file_allowed(form):
-    form.file.kwargs["validators"] = [FileAllowed(("txt",))]
+async def test_file_allowed(app):
+    class UploadFormAllowed(QuartForm):
+        class Meta:
+            csrf = False
+        file = FileField(validators=[FileAllowed("txt")])
 
-    f = await form.from_formdata()
-    assert await f.validate()
+    async with app.test_request_context("/"):
+        form = await UploadFormAllowed().from_formdata()
+        assert await form.validate()
 
-    f = form(file=FileStorage(filename="test.txt"))
-    assert await f.validate()
+        form = await UploadFormAllowed().from_formdata()
+        form.file = FileStorage("test.txt")
+        assert await form.validate()
 
-    f = form(file=FileStorage(filename="test.png"))
-    assert not await f.validate()
-    assert f.file.errors[0] == "File does not have an approved extension: txt"
+        form = await UploadFormAllowed().from_formdata()
+        form.file = FileStorage(filename="test.png")
+        assert not await form.validate()
+        assert form.file.errors[0] == "File does not have an approved extension: txt"
 
 @pytest.mark.asyncio
 async def test_file_size_no_file_passes_validation(form):
@@ -96,14 +106,17 @@ async def test_file_size_invalid_file_size_fails_validation(
         )
 
 @pytest.mark.asyncio
-async def test_validate_base_field(req_ctx):
-    class F(QuartForm):
+async def test_validate_base_field(app):
+    class Form(QuartForm):
         class Meta:
             csrf = False
 
         f = BaseFileField(validators=[FileRequired()])
 
-    form = await F.from_formdata()
-    assert not await form.validate()
-    assert not form(f=FileStorage()).validate()
-    assert F(f=FileStorage(filename="real")).validate()
+    async with app.test_request_context("/"):
+        form = await Form.from_formdata()
+        assert not await form.validate()
+        form = await Form.from_formdata(f=FileStorage())
+        assert not await form.validate()
+        form = await Form.from_formdata(f=(FileStorage(filename="real")))
+        assert await form.validate()
