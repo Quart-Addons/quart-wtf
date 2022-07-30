@@ -4,11 +4,11 @@ Tests the CSRF extension from Quart-WTF.
 import pytest
 from quart import Blueprint, g, render_template_string
 
-from quart_wtf.csrf import CSRFError, CSRFProtect, generate_csrf
+from quart_wtf.csrf import (REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING, CSRFError, CSRFProtect, generate_csrf)
 from quart_wtf.form import QuartForm
 
 @pytest.fixture
-def csrf_app(app):
+def app(app):
     CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
@@ -28,26 +28,26 @@ def csrf(app) -> CSRFProtect:
     return app.extensions["csrf"]
 
 @pytest.mark.asyncio
-async def test_render_token(csrf_app):
-    async with csrf_app.test_request_context("/"):
+async def test_render_token(app):
+    async with app.test_request_context("/"):
         token = generate_csrf()
         assert await render_template_string("{{ csrf_token() }}") == token
 
 @pytest.mark.asyncio
-async def test_protect(csrf_app, client, app_ctx):
+async def test_protect(app, client, app_ctx):
     response = await client.post("/")
-    #assert response.status_code == 400
-    #assert "The CSRF token is missing." in await response.get_data(as_text=True)
+    assert response.status_code == 400
+    assert TOKEN_MISSING in await response.get_data(as_text=True)
 
-    csrf_app.config["WTF_CSRF_ENABLED"] = False
+    app.config["WTF_CSRF_ENABLED"] = False
     response = await client.post("/")
     assert await response.get_data() == b""
-    csrf_app.config["WTF_CSRF_ENABLED"] = True
+    app.config["WTF_CSRF_ENABLED"] = True
 
-    csrf_app.config["WTF_CSRF_CHECK_DEFAULT"] = False
+    app.config["WTF_CSRF_CHECK_DEFAULT"] = False
     response = await client.post("/")
     assert await response.get_data() == b""
-    csrf_app.config["WTF_CSRF_CHECK_DEFAULT"] = True
+    app.config["WTF_CSRF_CHECK_DEFAULT"] = True
 
     assert await client.options("/").status_code == 200
     assert await client.post("/not-found").status_code == 404
@@ -68,7 +68,7 @@ async def test_same_origin(client):
         "/", base_url="https://localhost", headers={"X-CSRF-Token": token}
     )
     data = response.get_data(as_text=True)
-    assert "The referrer header is missing." in data
+    assert REFERRER_HEADER in data
 
     response = await client.post(
         "/",
@@ -76,7 +76,7 @@ async def test_same_origin(client):
         headers={"X-CSRF-Token": token, "Referer": "http://localhost/"},
     )
     data = response.get_data(as_text=True)
-    assert "The referrer does not match the host." in data
+    assert REFERRER_HOST in data
 
     response = await client.post(
         "/",
@@ -84,7 +84,7 @@ async def test_same_origin(client):
         headers={"X-CSRF-Token": token, "Referer": "https://other/"},
     )
     data = response.get_data(as_text=True)
-    assert "The referrer does not match the host." in data
+    assert REFERRER_HOST in data
 
     response = await client.post(
         "/",
@@ -92,7 +92,7 @@ async def test_same_origin(client):
         headers={"X-CSRF-Token": token, "Referer": "https://localhost:8080/"},
     )
     data = response.get_data(as_text=True)
-    assert "The referrer does not match the host." in data
+    assert REFERRER_HOST in data
 
     response = await client.post(
         "/",
