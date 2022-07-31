@@ -16,18 +16,12 @@ from werkzeug.exceptions import BadRequest
 from wtforms import ValidationError
 from wtforms.csrf.core import CSRF
 
+from .const import (FIELD_NAME_REQUIRED, REFERRER_HEADER, REFERRER_HOST,
+                   SECRET_KEY_REQUIRED, SESSION_TOKEN_MISSING, TOKEN_INVALID,
+                   TOKEN_EXPIRED, TOKEN_MISSING, TOKEN_NO_MATCH, VALIDATION_FAILED)
+
 __all__ = ("generate_csrf", "validate_csrf", "CSRFProtect")
 logger = logging.getLogger(__name__)
-
-FIELD_NAME_REQUIRED = "A field name is required to used CSRF."
-REFERRER_HEADER = "The referrer header is missing."
-REFERRER_HOST = "The referrer does not match the host."
-SECRET_KEY_REQUIRED = "A secret key is required to use CSRF."
-SESSION_TOKEN_MISSING = "The CSRF session token is missing."
-TOKEN_EXPIRED = "The CSRF token has expired."
-TOKEN_INVALID = "The CSRF token is invalid"
-TOKEN_MISSING = "The CSRF token is missing."
-TOKEN_NO_MATCH = "The CSRF tokens do not match."
 
 def _get_config(
     value: t.Optional[t.Any],
@@ -359,4 +353,4 @@ class CSRFError(BadRequest):
     :meth:`quart.Quart.errorhandler`.
     """
 
-    description = "CSRF validation failed."
+    description = VALIDATION_FAILED
