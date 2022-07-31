@@ -15,7 +15,7 @@ def _is_submitted() -> bool:
     """
     return bool(request) and request.method in SUBMIT_METHODS
 
-async def _get_formdata() -> CombinedMultiDict | MultiDict | ImmutableMultiDict | None:
+async def _get_formdata() -> CombinedMultiDict | MultiDict | ImmutableMultiDict:
     """
     Return formdata from request. Handles multi-dict and json content types.
     Returns:
@@ -27,5 +27,3 @@ async def _get_formdata() -> CombinedMultiDict | MultiDict | ImmutableMultiDict 
         return await request.form
     elif request.is_json:
         return ImmutableMultiDict(await request.get_json())
-
-    return None
