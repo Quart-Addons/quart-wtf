@@ -18,73 +18,64 @@ class UploadForm(QuartForm):
 @pytest.mark.asyncio
 async def test_process_formdata(app):
     async with app.test_request_context("/"):
-        formdata = MultiDict((("file", FileStorage()),))
-        form = await UploadForm.from_formdata(formdata)
-        assert form.file.data is None
-        formdata = MultiDict((("file", FileStorage(filename="real")),))
-        form = await UploadForm.from_formdata(formdata)
-        assert form.file.data is not None
+        assert UploadForm(MultiDict((("file", FileStorage()),))).file.data is None
+        assert (
+            UploadForm(MultiDict((("file", FileStorage(filename="real")),))).file.data is not None
+        )
 
 @pytest.mark.asyncio
 async def test_file_required(app):
-    class UploadFormRequired(QuartForm):
-        class Meta:
-            csrf = False
-        file = FileField(validators=[FileRequired()])
+    UploadForm.file.kwargs["validators"] = [FileRequired()]
 
     async with app.test_request_context("/"):
-        form = await UploadFormRequired.from_formdata()
+        form = UploadForm()
         assert not await form.validate()
         assert form.file.errors[0] == "This field is required."
 
-        formdata = formdata = MultiDict((("file", "not a file"),))
-        form = await UploadFormRequired.from_formdata(formdata)
+        form = UploadForm(file="not a file")
         assert not await form.validate()
         assert form.file.errors[0] == "This field is required."
 
-        formdata = MultiDict((("file", FileStorage()),))
-        form = await UploadFormRequired.from_formdata(formdata)
+        form = UploadForm(file=FileStorage())
         assert not await form.validate()
 
-        formdata = MultiDict((("file", FileStorage(filename="real")),))
-        form = await UploadFormRequired.from_formdata(formdata)
+        form = UploadForm(file=FileStorage(filename="real"))
         assert await form.validate()
 
 @pytest.mark.asyncio
 async def test_file_allowed(app):
-    class UploadFormAllowed(QuartForm):
-        class Meta:
-            csrf = False
-        file = FileField(validators=[FileAllowed("txt")])
+    UploadForm.file.kwargs["validators"] = [FileAllowed(("txt",))]
 
     async with app.test_request_context("/"):
-        form = await UploadFormAllowed().from_formdata(formdata=None)
+        form = UploadForm()
         assert await form.validate()
 
-        formdata = MultiDict((("file", FileStorage(filename="text.txt")),))
-        form = await UploadFormAllowed().from_formdata(formdata)
+        form = UploadForm(file=FileStorage(filename="test.txt"))
         assert await form.validate()
 
-        formdata = MultiDict((("file", FileStorage(filename="test.png")),))
-        form = await UploadFormAllowed().from_formdata(formdata)
+        form = UploadForm(file=FileStorage(filename="test.png"))
         assert not await form.validate()
         assert form.file.errors[0] == "File does not have an approved extension: txt"
 
 @pytest.mark.asyncio
-async def test_file_size_no_file_passes_validation(form):
-    form.file.kwargs["validators"] = [FileSize(max_size=100)]
-    f = await form.from_formdata()
-    assert await f.validate()
+async def test_file_size_no_file_passes_validation(app):
+    UploadForm.file.kwargs["validators"] = [FileSize(max_size=100)]
+    
+    async with app.test_request_context("/"):
+        form = UploadForm()
+        assert await form.validate()
 
+@pytest.mark.asyncio
+async def test_file_size_small_file_passes_validation(app, tmp_path):
+    UploadForm.file.kwargs["validators"] = [FileSize(max_size=100)]
 
-def test_file_size_small_file_passes_validation(form, tmp_path):
-    form.file.kwargs["validators"] = [FileSize(max_size=100)]
-    path = tmp_path / "test_file_smaller_than_max.txt"
-    path.write_bytes(b"\0")
+    async with app.test_request_context("/"):
+        path = tmp_path / "test_file_smaller_than_max.txt"
+        path.write_bytes(b"\0")
 
-    with path.open("rb") as file:
-        f = form(file=FileStorage(file))
-        assert f.validate()
+        with path.open("rb") as file:
+            form = UploadForm(file=FileStorage(file))
+            assert await form.validate()
 
 
 @pytest.mark.parametrize(
@@ -93,21 +84,18 @@ def test_file_size_small_file_passes_validation(form, tmp_path):
 
 @pytest.mark.asyncio
 async def test_file_size_invalid_file_size_fails_validation(
-    form, min_size, max_size, invalid_file_size, tmp_path
+    app, min_size, max_size, invalid_file_size, tmp_path
 ):
-    form.file.kwargs["validators"] = [FileSize(min_size=min_size, max_size=max_size)]
-    path = tmp_path / "test_file_invalid_size.txt"
-    path.write_bytes(b"\0" * invalid_file_size)
-    f = await form.from_formdata()
+    UploadForm.file.kwargs["validators"] = [FileSize(min_size=min_size, max_size=max_size)]
 
-    with path.open("rb") as file:
-        f = f(file=FileStorage(file))
-        assert not f.validate()
-        assert f.file.errors[
-            0
-        ] == "File must be between {min_size} and {max_size} bytes.".format(
-            min_size=min_size, max_size=max_size
-        )
+    async with app.test_request_context("/"):
+        path = tmp_path / "test_file_invalid_size.txt"
+        path.write_bytes(b"\0"  * invalid_file_size)
+
+        with path.open("rb") as file:
+            form = UploadForm(file=FileStorage(file))
+            assert not await form.validate()
+            assert form.file.errors[0] == f"File must be between {min_size} and {max_size} bytes."
 
 @pytest.mark.asyncio
 async def test_validate_base_field(app):
@@ -118,13 +106,11 @@ async def test_validate_base_field(app):
         f = BaseFileField(validators=[FileRequired()])
 
     async with app.test_request_context("/"):
-        form = await Form.from_formdata(formdata=None)
+        form = Form()
         assert not await form.validate()
 
-        formdata = MultiDict((("f", FileStorage()),))
-        form = await Form.from_formdata(formdata)
+        form = Form(f=FileStorage())
         assert not await form.validate()
 
-        formdata = MultiDict((("f", FileStorage(filename="real")),))
-        form = await Form.from_formdata(formdata)
+        form = Form(f=FileStorage(filename="real"))
         assert await form.validate()

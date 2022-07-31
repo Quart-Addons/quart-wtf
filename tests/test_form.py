@@ -22,7 +22,7 @@ class BasicForm(QuartForm):
 async def test_populate_from_form(app, client):
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm.from_formdata()
+        form = BasicForm()
         assert form.name.data == "form"
 
     await client.post("/", data={"name": "form"})
@@ -31,7 +31,7 @@ async def test_populate_from_form(app, client):
 async def test_populate_from_files(app, client):
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm.from_formdata()
+        form = BasicForm()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "flask.png"
 
@@ -41,7 +41,7 @@ async def test_populate_from_files(app, client):
 async def test_populate_from_json(app, client):
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm.from_formdata()
+        form = BasicForm()
         assert form.name.data == "json"
 
     await client.post("/", data=json.dumps({"name": "json"}))
@@ -68,9 +68,9 @@ async def test_populate_none(app, client):
 async def test_validate_on_submit(app, client):
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm.from_formdata()
+        form = BasicForm()
         assert form.is_submitted()
-        assert not form.validate_on_submit()
+        assert not await form.validate_on_submit()
         assert "name" in form.errors
 
     await client.post("/")
@@ -79,8 +79,8 @@ async def test_validate_on_submit(app, client):
 async def test_no_validate_on_get(app, client):
     @app.route("/", methods=["GET", "POST"])
     async def index():
-        form = await BasicForm.from_formdata()
-        assert not form.validate_on_submit()
+        form = BasicForm()
+        assert not await form.validate_on_submit()
         assert "name" not in form.errors
 
     await client.get("/")
@@ -95,7 +95,7 @@ async def test_hidden_tag(app):
         count = IntegerField(widget=HiddenInput())
 
     async with app.test_request_context("/"):
-        form = await Form.from_formdata()
+        form = Form()
         out = form.hidden_tag()
         assert all(x in out for x in ("csrf_token", "count", "key"))
         assert "avatar" not in out
