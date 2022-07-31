@@ -60,7 +60,7 @@ async def test_file_allowed(app):
 @pytest.mark.asyncio
 async def test_file_size_no_file_passes_validation(app):
     UploadForm.file.kwargs["validators"] = [FileSize(max_size=100)]
-    
+
     async with app.test_request_context("/"):
         form = UploadForm()
         assert await form.validate()
