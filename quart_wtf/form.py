@@ -2,7 +2,7 @@
 Quart-WTF Form
 """
 import asyncio
-
+from typing import Optional
 from markupsafe import Markup
 from quart import current_app, session
 from wtforms import Form, ValidationError
@@ -56,21 +56,22 @@ class QuartForm(Form):
             """
             return current_app.config.get("WTF_CSRF_TIME_LIMIT", 3600)
 
-    def __init__(self, formdata=_Auto, **kwargs) -> None:
-        super().__init__(formdata=formdata, **kwargs)
+        def wrap_formdata(self, form, formdata):
+            if formdata is _Auto:
+                if _is_submitted():
+                    loop = asyncio.get_event_loop()
+                    return loop.run_until_complete(_get_formdata())
+                return None
 
-    @classmethod
-    async def from_formdata(cls, formdata=_Auto, **kwargs):
-        """
-        Method to support initializing from submitted formdata.
-        """
-        if formdata is _Auto:
-            if _is_submitted():
-                formdata = await _get_formdata()
-            else:
-                formdata = None
+            return formdata
 
-        return cls(formdata=formdata, **kwargs)
+    def __init__(self, formdata=_Auto, obj=None, prefix: Optional[str]=None,
+                data=None, meta: Optional[dict]=None, **kwargs) -> None:
+        """
+        Initialize the form. Takes all the same parameters as WTForms
+        base form.
+        """
+        super().__init__(formdata, obj, prefix, data, meta, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:
         """
