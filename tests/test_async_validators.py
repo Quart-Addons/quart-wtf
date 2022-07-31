@@ -39,13 +39,13 @@ class FormWithAsyncException(QuartForm):
 async def test_async_validator_success(app, client):
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncValidators.from_formdata()
+        form = FormWithAsyncValidators()
         assert form.field1.data == 'value1'
         assert form.field2.data == 'value2'
 
         # validate and check again
         success = await form.validate()
-        assert success == True
+        assert success is True
 
         # check values and errors
         assert form.field1.data == 'value1'
@@ -60,13 +60,13 @@ async def test_async_validator_success(app, client):
 async def test_async_validator_error(app, client):
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncValidators.from_formdata()
+        form = FormWithAsyncValidators()
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
 
         # validate and check again
         success = await form.validate()
-        assert success == False
+        assert success is False
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
 
@@ -83,13 +83,13 @@ async def test_async_validator_error(app, client):
 async def test_data_required_error(app, client):
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncValidators.from_formdata()
+        form = FormWithAsyncValidators()
         assert form.field1.data == 'xxx1'
         assert form.field2.data in ["", None]  # WTForms >= 3.0.0a1 is None
 
         # validate and check again
         success = await form.validate()
-        assert success == False
+        assert success is False
         assert form.field1.data == 'xxx1'
 
         # check errors
@@ -105,7 +105,7 @@ async def test_data_required_error(app, client):
 async def test_async_validator_exception(app, client):
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncException.from_formdata()
+        form = FormWithAsyncException()
         try:
             await form.validate()
         except Exception as err:
