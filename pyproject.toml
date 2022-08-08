@@ -30,7 +30,6 @@ packages = [
 python = "^3.10"
 quart = "^0.18.0"
 WTForms = "^3.0.1"
-quart-uploads = "^0.0.1"
 
 [tool.poetry.dev-dependencies]
 quart_uploads = "^0.0.1"
