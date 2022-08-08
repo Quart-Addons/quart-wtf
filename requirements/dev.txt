@@ -1,5 +1,0 @@
--r requirements.txt
--r docs.txt
-pytest
-pytest-asyncio
-twine 
