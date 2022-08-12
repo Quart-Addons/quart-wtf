@@ -21,9 +21,12 @@ async def _get_formdata() -> CombinedMultiDict | MultiDict | ImmutableMultiDict:
     Returns:
       formdata (ImmutableMultiDict): The form/json data from the request.
     """
-    if await request.files:
-        return CombinedMultiDict((await request.files, await request.form))
-    elif await request.form:
+    files = await request.files
+    form = await request.form
+
+    if files:
+        return CombinedMultiDict((files, form))
+    elif form:
         return await request.form
     elif request.is_json:
         return ImmutableMultiDict(await request.get_json())

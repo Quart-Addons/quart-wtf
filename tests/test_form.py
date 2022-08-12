@@ -15,7 +15,7 @@ class BasicForm(QuartForm):
     class Meta:
         csrf = False
 
-    name = StringField(validators=[DataRequired()])
+    name = StringField(label='name', validators=[DataRequired()])
     avatar = FileField()
 
 @pytest.mark.asyncio
