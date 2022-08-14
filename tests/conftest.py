@@ -1,9 +1,14 @@
+"""
+Configures test fixtures.
+"""
 import pytest
-import pytest_asyncio
 from quart import Quart
 
 @pytest.fixture
 def app():
+    """
+    Returns a Quart app for testing.
+    """
     app = Quart(__name__)
     app.config.update(
         TESTING=True,
@@ -11,16 +16,9 @@ def app():
     )
     return app
 
-@pytest_asyncio.fixture
-async def app_ctx(app):
-    async with app.app_context() as ctx:
-        yield ctx
-
-@pytest_asyncio.fixture
-async def req_ctx(app):
-    async with app.test_request_context("/") as ctx:
-        yield ctx
-
 @pytest.fixture
 def client(app):
+    """
+    Returns a Quart test client.
+    """
     return app.test_client()

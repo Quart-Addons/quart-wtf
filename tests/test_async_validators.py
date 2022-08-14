@@ -9,10 +9,16 @@ from wtforms.validators import DataRequired, ValidationError
 from quart_wtf import QuartForm
 
 class FormWithAsyncValidators(QuartForm):
+    """
+    Test form for testing async validators.
+    """
     field1 = StringField()
     field2 = StringField(validators=[DataRequired()])
 
     async def async_validate_field1(self, field):
+        """
+        Async validator for field1.
+        """
         # test await
         await asyncio.sleep(.01)
 
@@ -21,6 +27,9 @@ class FormWithAsyncValidators(QuartForm):
             raise ValidationError('Field value is not correct.')
 
     async def async_validate_field2(self, field):
+        """
+        Async validator for field2.
+        """
         # test await
         await asyncio.sleep(.02)
 
@@ -29,17 +38,26 @@ class FormWithAsyncValidators(QuartForm):
             raise ValidationError('Field value is not correct.')
 
 class FormWithAsyncException(QuartForm):
+    """
+    Form for Async Exception test.
+    """
     field1 = StringField()
 
     async def async_validate_field1(self, field):
+        """
+        Async validator for field1.
+        """
         await asyncio.sleep(.01)
         raise Exception('test')
 
 @pytest.mark.asyncio
 async def test_async_validator_success(app, client):
+    """
+    Test custom async validator success.
+    """
     @app.route('/', methods=['POST'])
     async def index():
-        form = FormWithAsyncValidators()
+        form = await FormWithAsyncValidators().from_formdata()
         assert form.field1.data == 'value1'
         assert form.field2.data == 'value2'
 
@@ -50,7 +68,7 @@ async def test_async_validator_success(app, client):
         # check values and errors
         assert form.field1.data == 'value1'
         assert 'field1' not in form.errors
-        
+
         assert form.field2.data == 'value2'
         assert 'field2' not in form.errors
 
@@ -58,9 +76,12 @@ async def test_async_validator_success(app, client):
 
 @pytest.mark.asyncio
 async def test_async_validator_error(app, client):
+    """
+    Tests async validator error.
+    """
     @app.route('/', methods=['POST'])
     async def index():
-        form = FormWithAsyncValidators()
+        form = await FormWithAsyncValidators().from_formdata()
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
 
@@ -81,9 +102,12 @@ async def test_async_validator_error(app, client):
 
 @pytest.mark.asyncio
 async def test_data_required_error(app, client):
+    """
+    Tests data required error using async.
+    """
     @app.route('/', methods=['POST'])
     async def index():
-        form = FormWithAsyncValidators()
+        form = await FormWithAsyncValidators().from_formdata()
         assert form.field1.data == 'xxx1'
         assert form.field2.data in ["", None]  # WTForms >= 3.0.0a1 is None
 
@@ -103,9 +127,12 @@ async def test_data_required_error(app, client):
 
 @pytest.mark.asyncio
 async def test_async_validator_exception(app, client):
+    """
+    Test async validator exception.
+    """
     @app.route('/', methods=['POST'])
     async def index():
-        form = FormWithAsyncException()
+        form = await FormWithAsyncException().from_formdata()
         try:
             await form.validate()
         except Exception as err:

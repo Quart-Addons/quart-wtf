@@ -12,26 +12,38 @@ from wtforms.widgets import HiddenInput
 from quart_wtf import QuartForm
 
 class BasicForm(QuartForm):
+    """
+    Basic test form.
+    """
     class Meta:
+        """
+        Disables CSRF for testing.
+        """
         csrf = False
 
-    name = StringField(label='name', validators=[DataRequired()])
+    name = StringField(validators=[DataRequired()])
     avatar = FileField()
 
 @pytest.mark.asyncio
 async def test_populate_from_form(app, client):
+    """
+    Populates formdata for the form.
+    """
     @app.route("/", methods=["POST"])
     async def index():
-        form = BasicForm()
+        form = await BasicForm().from_formdata()
         assert form.name.data == "form"
 
     await client.post("/", data={"name": "form"})
 
 @pytest.mark.asyncio
 async def test_populate_from_files(app, client):
+    """
+    Populates formdata for the form using files.
+    """
     @app.route("/", methods=["POST"])
     async def index():
-        form = BasicForm()
+        form = await BasicForm().from_formdata()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "flask.png"
 
@@ -39,33 +51,45 @@ async def test_populate_from_files(app, client):
 
 @pytest.mark.asyncio
 async def test_populate_from_json(app, client):
+    """
+    Populates formdata using json.
+    """
     @app.route("/", methods=["POST"])
     async def index():
-        form = BasicForm()
+        form = await BasicForm().from_formdata()
         assert form.name.data == "json"
 
     await client.post("/", data=json.dumps({"name": "json"}))
 
 @pytest.mark.asyncio
 async def test_populate_manually(app, client):
+    """
+    Manually populates the form.
+    """
     @app.route("/", methods=["POST"])
     async def index():
-        form = BasicForm(request.args)
+        form = await BasicForm.from_formdata(fromdata=request.args)
         assert form.name.data == "args"
 
     await client.post("/", query_string={"name": "args"})
 
 @pytest.mark.asyncio
 async def test_populate_none(app, client):
+    """
+    Manually populates the form with no formdata.
+    """
     @app.route("/", methods=["POST"])
     async def index():
-        form = BasicForm(None)
+        form = BasicForm(formdata=None)
         assert form.name.data is None
 
     await client.post("/", data={"name": "ignore"})
 
 @pytest.mark.asyncio
 async def test_validate_on_submit(app, client):
+    """
+    Tests validate on submit for the form.
+    """
     @app.route("/", methods=["POST"])
     async def index():
         form = BasicForm()
@@ -77,6 +101,9 @@ async def test_validate_on_submit(app, client):
 
 @pytest.mark.asyncio
 async def test_no_validate_on_get(app, client):
+    """
+    Form not valid on GET requet.
+    """
     @app.route("/", methods=["GET", "POST"])
     async def index():
         form = BasicForm()
@@ -87,8 +114,17 @@ async def test_no_validate_on_get(app, client):
 
 @pytest.mark.asyncio
 async def test_hidden_tag(app):
+    """
+    Tests custom hidden tag rendering.
+    """
     class Form(BasicForm):
+        """
+        Form for testing hidden tag.
+        """
         class Meta:
+            """
+            Enables CSRF for testing.
+            """
             csrf = True
 
         key = HiddenField()

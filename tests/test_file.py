@@ -6,25 +6,38 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.datastructures import MultiDict
 from wtforms import FileField as BaseFileField
 
+from quart_uploads import UploadSet, configure_uploads
 from quart_wtf import QuartForm
 from quart_wtf.file import FileAllowed, FileField, FileRequired, FileSize
 
 class UploadForm(QuartForm):
+    """
+    Test upload form.
+    """
     class Meta:
+        """
+        Disable CSRF.
+        """
         csrf = False
 
     file = FileField()
 
 @pytest.mark.asyncio
 async def test_process_formdata(app):
+    """
+    Tests prcessing formdata with files.
+    """
     async with app.test_request_context("/"):
-        assert UploadForm(MultiDict((("file", FileStorage()),))).file.data is None
-        assert (
-            UploadForm(MultiDict((("file", FileStorage(filename="real")),))).file.data is not None
-        )
+        formdata = MultiDict((("file", FileStorage()),))
+        assert UploadForm(formdata=formdata).file.data is None
+        formdata = MultiDict((("file", FileStorage(filename="real")),))
+        assert UploadForm(formdata=formdata).file.data is not None
 
 @pytest.mark.asyncio
 async def test_file_required(app):
+    """
+    Tests file required.
+    """
     UploadForm.file.kwargs["validators"] = [FileRequired()]
 
     async with app.test_request_context("/"):
@@ -44,6 +57,9 @@ async def test_file_required(app):
 
 @pytest.mark.asyncio
 async def test_file_allowed(app):
+    """
+    Tests if a file is allowed.
+    """
     UploadForm.file.kwargs["validators"] = [FileAllowed(("txt",))]
 
     async with app.test_request_context("/"):
@@ -58,7 +74,34 @@ async def test_file_allowed(app):
         assert form.file.errors[0] == "File does not have an approved extension: txt"
 
 @pytest.mark.asyncio
+async def test_file_allowed_uploadset(app, tmp_path):
+    """
+    Test Quart-WTF with Quart-Uploads.
+    """
+    dir = tmp_path / "uploads"
+    dir.mkdir()
+
+    app.config["UPLOADS_DEFAULT_DEST"] = dir
+    txt = UploadSet("txt", extensions=("txt",))
+    configure_uploads(app, txt)
+    UploadForm.file.kwargs["validators"] = [FileAllowed(txt)]
+
+    async with app.app_context():
+        form = UploadForm()
+        assert await form.validate()
+
+        form = UploadForm(file=FileStorage(filename="test.txt"))
+        assert await form.validate()
+
+        form = UploadForm(file=FileStorage(filename="test.png"))
+        assert not await form.validate()
+        assert form.file.errors[0] == "File does not have an approved extension."
+
+@pytest.mark.asyncio
 async def test_file_size_no_file_passes_validation(app):
+    """
+    Tests file size validator.
+    """
     UploadForm.file.kwargs["validators"] = [FileSize(max_size=100)]
 
     async with app.test_request_context("/"):
@@ -67,6 +110,9 @@ async def test_file_size_no_file_passes_validation(app):
 
 @pytest.mark.asyncio
 async def test_file_size_small_file_passes_validation(app, tmp_path):
+    """
+    Tests small file size.
+    """
     UploadForm.file.kwargs["validators"] = [FileSize(max_size=100)]
 
     async with app.test_request_context("/"):
@@ -86,6 +132,9 @@ async def test_file_size_small_file_passes_validation(app, tmp_path):
 async def test_file_size_invalid_file_size_fails_validation(
     app, min_size, max_size, invalid_file_size, tmp_path
 ):
+    """
+    Tests invalid file size.
+    """
     UploadForm.file.kwargs["validators"] = [FileSize(min_size=min_size, max_size=max_size)]
 
     async with app.test_request_context("/"):
@@ -99,8 +148,17 @@ async def test_file_size_invalid_file_size_fails_validation(
 
 @pytest.mark.asyncio
 async def test_validate_base_field(app):
+    """
+    Test validating file base field.
+    """
     class Form(QuartForm):
+        """
+        Form for testing.
+        """
         class Meta:
+            """
+            Disable CSRF.
+            """
             csrf = False
 
         f = BaseFileField(validators=[FileRequired()])

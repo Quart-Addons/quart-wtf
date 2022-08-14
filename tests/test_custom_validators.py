@@ -8,22 +8,34 @@ from wtforms.validators import ValidationError
 from quart_wtf import QuartForm
 
 class FormWithCustomValidators(QuartForm):
+    """
+    Test form to test custom validators.
+    """
     field1 = StringField()
     field2 = StringField()
 
     def validate_field1(self, field):
+        """
+        Validates field1.
+        """
         if not field.data == 'value1':
             raise ValidationError('Field value is incorrect.')
 
     def validate_field2(self, field):
+        """
+        Validates field2.
+        """
         if not field.data == 'value2':
             raise ValidationError('Field value is incorrect.')
 
 @pytest.mark.asyncio
 async def test_custom_validator_success(app, client):
+    """
+    Test custom validators with success.
+    """
     @app.route('/', methods=['POST'])
     async def index():
-        form = FormWithCustomValidators()
+        form = await FormWithCustomValidators().from_formdata()
         assert form.field1.data == 'value1'
         assert form.field2.data == 'value2'
 
@@ -42,9 +54,12 @@ async def test_custom_validator_success(app, client):
 
 @pytest.mark.asyncio
 async def test_custom_validator_failure(app, client):
+    """
+    Test custom validators with failure.
+    """
     @app.route('/', methods=['POST'])
     async def index():
-        form = FormWithCustomValidators()
+        form = await FormWithCustomValidators().from_formdata()
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
 
