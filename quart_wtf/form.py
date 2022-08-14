@@ -20,15 +20,15 @@ class QuartForm(Form):
     """
     Meta = _QuartFormMeta
 
-    def __init__(self, formdata, prefix: str='', **kwargs) -> None:
+    def __init__(self, *args, formdata=None, **kwargs) -> None:
         """
         Initialize the form. Takes all the same parameters as WTForms
         base form.
         """
-        super().__init__(formdata=formdata, prefix=prefix, **kwargs)
+        super().__init__(formdata=formdata, *args, **kwargs)
 
     @classmethod
-    async def from_formdata(cls, formdata=_Auto, prefix: str='', **kwargs) -> QuartForm:
+    async def from_formdata(cls, *args, formdata=_Auto, **kwargs) -> QuartForm:
         """
         Method to support initializing class from submitted formdata. If
         request is a POST, PUT, PATCH or DELETE, form will be initialized using
@@ -40,7 +40,7 @@ class QuartForm(Form):
         Args:
             formdata (ImmutableMultiDict, optional): If present, this will be used
                 to initialize the form fields.
-            prefix (str): The prefix to be used for the fields. 
+            prefix (str): The prefix to be used for the fields.
 
         Returns:
             :class:`quart_wtf.form.QuartForm`: A new instance of the form.
@@ -51,7 +51,7 @@ class QuartForm(Form):
             else:
                 formdata = None
 
-        return cls(formdata=formdata, prefix=prefix, **kwargs)
+        return cls(*args, formdata=formdata, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:
         """
