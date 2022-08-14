@@ -45,9 +45,9 @@ file_required = FileRequired
 
 class FileAllowed:
     """Validates that the uploaded file is allowed by a given list of
-    extensions or a Flask-Uploads :class:`~flaskext.uploads.UploadSet`.
+    extensions or a Quart-Uploads :class:`~quart_uploads.UploadSet`.
     :param upload_set: A list of extensions or an
-        :class:`~flaskext.uploads.UploadSet`
+        :class:`~quart_uploads.UploadSet`
     :param message: error message
     You can also use the synonym ``file_allowed``.
     """
@@ -73,7 +73,7 @@ class FileAllowed:
                 ).format(extensions=", ".join(self.upload_set))
             )
 
-        if not self.upload_set.file_allowed(field.data, filename):
+        if not self.upload_set.file_allowed(filename):
             raise StopValidation(
                 self.message
                 or field.gettext("File does not have an approved extension.")
