@@ -6,9 +6,9 @@ from quart import g, session
 from wtforms import ValidationError
 
 from quart_wtf import QuartForm
-from quart_wtf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
+from quart_wtf.csrf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
                             TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
-from quart_wtf.csrf import generate_csrf, validate_csrf
+from quart_wtf.csrf.utils import generate_csrf, validate_csrf
 
 @pytest.mark.asyncio
 async def test_csrf_requires_secret_key(app):

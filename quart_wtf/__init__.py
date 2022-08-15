@@ -1,8 +1,8 @@
 """
 quart_form
 """
-from .csrf import CSRFProtect
+from .csrf.extension import CSRFProtect
 from .file import FileField, file_required, file_allowed
-from .form import QuartForm
+from .form import QuartForm, Form
 
-__all__ = ('CSRFProtect', 'FileField', 'file_required', 'file_allowed', 'QuartForm')
+__all__ = ('CSRFProtect', 'FileField', 'file_required', 'file_allowed', 'QuartForm', 'Form')

@@ -4,8 +4,9 @@ Tests the CSRF extension from Quart-WTF.
 import pytest
 from quart import Blueprint, g, render_template_string
 
-from quart_wtf.const import REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING
-from quart_wtf.csrf import CSRFError, CSRFProtect, generate_csrf
+from quart_wtf.csrf.const import REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING
+from quart_wtf.csrf.extension import CSRFError, CSRFProtect
+from quart_wtf.csrf.utils import generate_csrf
 from quart_wtf.form import QuartForm
 
 @pytest.fixture

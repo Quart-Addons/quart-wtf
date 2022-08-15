@@ -8,7 +8,7 @@ from quart import current_app, session
 from wtforms.meta import DefaultMeta
 from werkzeug.utils import cached_property
 
-from .csrf import _QuartFormCSRF
+from .csrf.form import _QuartFormCSRF
 
 class _QuartFormMeta(DefaultMeta):
     """
