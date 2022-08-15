@@ -3,7 +3,6 @@ quart_wtf.meta
 
 Defines the WTF meta class for Quart-WTF.
 """
-from numbers import Number
 from quart import current_app, session
 from wtforms.meta import DefaultMeta
 from werkzeug.utils import cached_property
@@ -25,7 +24,7 @@ class _QuartFormMeta(DefaultMeta):
         return current_app.config.get("WTF_CSRF_ENABLED", True)
 
     @cached_property
-    def csrf_secret(self) -> str:
+    def csrf_secret(self):
         """
         CSRF secret key.
         """
@@ -39,7 +38,7 @@ class _QuartFormMeta(DefaultMeta):
         return current_app.config.get('WTF_CSRF_FIELD_NAME', "csrf_token")
 
     @cached_property
-    def csrf_time_limit(self) -> Number:
+    def csrf_time_limit(self):
         """
         CSRF time limit.
         """
