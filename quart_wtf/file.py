@@ -6,7 +6,7 @@ File fields for Quart-WTF.
 
 from collections import abc
 
-from werkzeug.datastructures import FileStorage
+from quart.datastructures import FileStorage
 from wtforms import FileField as _FileField
 from wtforms.validators import DataRequired
 from wtforms.validators import StopValidation
