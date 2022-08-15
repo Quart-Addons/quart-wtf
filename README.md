@@ -1,2 +1,5 @@
 # Quart-WTF
-Simple integration of Quart and WTForms. Including CSRF and file uploading
+
+![Quart WTForms Logo](logos/logo.png)
+
+Simple integration of Quart and WTForms. Including CSRF and file uploading.
