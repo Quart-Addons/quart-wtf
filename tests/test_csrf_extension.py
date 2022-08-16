@@ -37,10 +37,12 @@ async def test_render_token(app):
 
 @pytest.mark.asyncio
 async def test_protect(app, client):
+    await app.startup()
+
     async with app.app_context():
-        #response = await client.post("/")
-        #assert response.status_code == 400
-        #assert TOKEN_MISSING in await response.get_data(as_text=True)
+        response = await client.post("/")
+        assert response.status_code == 400
+        assert TOKEN_MISSING in await response.get_data(as_text=True)
 
         app.config["WTF_CSRF_ENABLED"] = False
         response = await client.post("/")
@@ -64,7 +66,8 @@ async def test_protect(app, client):
         assert await client.post("/", headers={"X-CSRF-Token": token}).status_code == 200
 
 @pytest.mark.asyncio
-async def test_same_origin(client):
+async def test_same_origin(app, client):
+    await app.startup()
     response = await client.get("/")
     token = response.headers["X-CSRF-Token"]
     response = await client.post(

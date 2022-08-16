@@ -78,15 +78,15 @@ class CSRFProtect:
             if dest in self._exempt_views:
                 return
 
-            self.protect()
+            await self.protect()
 
-    def _get_csrf_token(self) -> t.Optional[t.Any]:
+    async def _get_csrf_token(self) -> t.Optional[t.Any]:
         """
         Gets the CSRF token.
         """
         # find the token in the form data.
         field_name = current_app.config["WTF_CSRF_FIELD_NAME"]
-        form = request.form
+        form = await request.form
         base_token = form.get(field_name)
 
         if base_token:
@@ -110,14 +110,14 @@ class CSRFProtect:
 
         return None
 
-    def protect(self) -> None:
+    async def protect(self) -> None:
         """
         Provides the CSRF protection for the app.
         """
         if request.method not in current_app.config["WTF_CSRF_METHODS"]:
             return
 
-        csrf_token = self._get_csrf_token()
+        csrf_token = await self._get_csrf_token()
 
         try:
             validate_csrf(csrf_token)
