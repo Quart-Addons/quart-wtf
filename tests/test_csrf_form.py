@@ -1,10 +1,10 @@
 """
 Tests CSRF with Quart-WTF.
 """
+from crypt import methods
 import pytest
 from quart import g, session
 from wtforms import ValidationError
-
 from quart_wtf import QuartForm
 from quart_wtf.csrf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
                             TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
@@ -95,11 +95,31 @@ async def test_form_csrf(app, client):
     @app.route("/", methods=["GET", "POST"])
     async def index():
         form = await QuartForm.from_formdata()
-        valid = await form.validate_on_submit()
-        if valid:
+
+        if await form.validate_on_submit():
             return "good"
+
         if form.errors:
             return form.csrf_token.errors[0]
+
+        return form.csrf_token.current_token
+    
+    async with client.r
+@pytest.mark.asyncio
+async def test_form_csrf_old(app, client):
+    """
+    Test form CSRF.
+    """
+    @app.route("/", methods=["GET", "POST"])
+    async def index():
+        form = await QuartForm.from_formdata()
+
+        if await form.validate_on_submit():
+            return "good"
+
+        if form.errors:
+            return form.csrf_token.errors[0]
+
         return form.csrf_token.current_token
 
     async with app.app_context():
@@ -117,7 +137,7 @@ async def test_validate_error_logged(app, monkeypatch):
     """
     Test validation error is logged.
     """
-    from quart_wtf.csrf import logger
+    from quart_wtf.csrf.utils import logger
 
     async with app.test_request_context("/"):
         messages = []

@@ -57,7 +57,7 @@ async def test_async_validator_success(app, client):
     """
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncValidators().from_formdata()
+        form = await FormWithAsyncValidators().create_form()
         assert form.field1.data == 'value1'
         assert form.field2.data == 'value2'
 
@@ -81,7 +81,7 @@ async def test_async_validator_error(app, client):
     """
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncValidators().from_formdata()
+        form = await FormWithAsyncValidators().create_form()
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
 
@@ -107,7 +107,7 @@ async def test_data_required_error(app, client):
     """
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncValidators().from_formdata()
+        form = await FormWithAsyncValidators().create_form()
         assert form.field1.data == 'xxx1'
         assert form.field2.data in ["", None]  # WTForms >= 3.0.0a1 is None
 
@@ -132,7 +132,7 @@ async def test_async_validator_exception(app, client):
     """
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithAsyncException().from_formdata()
+        form = await FormWithAsyncException().create_form()
         try:
             await form.validate()
         except Exception as err:

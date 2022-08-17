@@ -6,7 +6,7 @@ Utilities for Quart-WTF.
 from quart import request
 from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
 
-SUBMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+SUBMIT_METHODS = set(("POST", "PUT", "PATCH", "DELETE"))
 
 def _is_submitted() -> bool:
     """

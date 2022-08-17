@@ -9,35 +9,35 @@ from werkzeug.utils import cached_property
 
 from .csrf.form import _QuartFormCSRF
 
-class _QuartFormMeta(DefaultMeta):
+class QuartFormMeta(DefaultMeta):
     """
     Meta class for Quart specific subclass of WTForms.
     """
     csrf_class = _QuartFormCSRF
     csrf_context = session
 
-    @cached_property
+    @property
     def csrf(self) -> bool:
         """
         Determines if CSRF is enabled.
         """
         return current_app.config.get("WTF_CSRF_ENABLED", True)
 
-    @cached_property
+    @property
     def csrf_secret(self):
         """
         CSRF secret key.
         """
         return current_app.config.get("WTF_CSRF_SECRET_KEY", current_app.secret_key)
 
-    @cached_property
+    @property
     def csrf_field_name(self) -> str:
         """
         CSRF field name.
         """
         return current_app.config.get('WTF_CSRF_FIELD_NAME', "csrf_token")
 
-    @cached_property
+    @property
     def csrf_time_limit(self):
         """
         CSRF time limit.

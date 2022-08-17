@@ -37,7 +37,7 @@ async def test_render_token(app):
 
 @pytest.mark.asyncio
 async def test_protect(app, client):
-    await app.startup()
+    #await app.startup()
 
     async with app.app_context():
         response = await client.post("/")

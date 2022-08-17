@@ -2,7 +2,7 @@
 Tests file handing with Quart-WTF.
 """
 import pytest
-from werkzeug.datastructures import FileStorage
+from quart.datastructures import FileStorage
 from werkzeug.datastructures import MultiDict
 from wtforms import FileField as BaseFileField
 

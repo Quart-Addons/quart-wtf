@@ -12,14 +12,17 @@ from .utils import logger, generate_csrf, validate_csrf
 class _QuartFormCSRF(CSRF):
     def setup_form(self, form):
         self.meta = form.meta
-        return super(_QuartFormCSRF, self).setup_form(form)
+        return super().setup_form(form)
 
     def generate_csrf_token(self, csrf_token_field):
+
         return generate_csrf(
-            secret_key=self.meta.csrf_secret, token_key=self.meta.csrf_field_name
+            secret_key=self.meta.csrf_secret,
+            token_key=self.meta.csrf_field_name
         )
 
     def validate_csrf_token(self, form, field):
+
         if g.get("csrf_valid", False):
             # already validated by CSRFProtect.
             return

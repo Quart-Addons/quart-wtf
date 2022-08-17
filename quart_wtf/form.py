@@ -3,12 +3,12 @@ Quart-WTF Form
 """
 from __future__ import annotations
 import asyncio
-from typing import Optional
+from typing import Optional, Union
 from markupsafe import Markup
 from wtforms import Form, Label, ValidationError
 from wtforms.widgets import HiddenInput
-
-from .meta import _QuartFormMeta
+from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
+from .meta import QuartFormMeta
 from .utils import _is_submitted, _get_formdata
 
 _Auto = object()
@@ -19,75 +19,85 @@ class QuartForm(Form):
     To populate from submitted formdata use the ```.from_submit()``` class
     method to initialize the instance.
     """
-    Labels: Optional[dict] = None # Labels that need be translated with LazyStrings
+    Labels: Optional[dict] = None
 
-    Meta = _QuartFormMeta
+    Meta = QuartFormMeta
 
-    def __init__(self, *args, formdata=None, labels: Optional[dict]=None, **kwargs) -> None:
+    def __init__(
+        self,
+        formdata: Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]=None,
+        obj=None,
+        prefix='',
+        data: Optional[dict]=None,
+        meta: Optional[dict]=None,
+        labels: Optional[dict]=None,
+        **kwargs
+        ) -> None:
         """
         Initialize the form. Takes all the same parameters as WTForms
         base form.
         """
-        # set the field labels
+        # Set the labels for the field if they have been passed.
         if labels is not None:
-            self.set_field_labels(labels)
+            for field, text in labels:
+                self[field].label = Label(self[field].id, text)
 
-        super().__init__(formdata=formdata, *args, **kwargs)
+        super().__init__(formdata, obj, prefix, data, meta, **kwargs)
 
     @classmethod
-    async def from_formdata(cls, *args, formdata=_Auto, **kwargs) -> QuartForm:
+    async def create_form(
+        cls,
+        formdata: Union[object, MultiDict, CombinedMultiDict, ImmutableMultiDict]=_Auto,
+        obj=None,
+        prefix: Optional[str]=None,
+        data: Optional[dict]=None,
+        meta: Optional[dict]=None,
+        labels: Optional[dict]=None,
+        **kwargs
+        ) -> QuartForm:
         """
-        Method to support initializing class from submitted formdata. If
-        request is a POST, PUT, PATCH or DELETE, form will be initialized using
-        formdata. Otherwise, it will be initialized using defaults.
+        This is a async method will create a new instance of ``QuartForm``.
 
-        Since the `request.files`, `request.form` & `request.json` are coroutines.
-        a classmethod is need to set the formdata for a given request.
+        This method is primiarly used to intialize the class from submitted
+        formdata from ``Quart.request``. If a request is a POST, PUT, PATCH,
+        or DELETE method. The form will be intialized using the request. Otherwise
+        it will initialized using the defaults. This is required since ``request.files``,
+        ``request.form``, and ``request.json`` are coroutines and need to be called in an
+        async manner.
 
-        Args:
-            formdata (ImmutableMultiDict, optional): If present, this will be used
-                to initialize the form fields.
-            prefix (str): The prefix to be used for the fields.
+        Also, if you are using ``quart_babel`` for translating components of this form, such
+        as field labels. This method will call the lazy text as a coroutine, since ``quart_babel``
+        use a coroutine to get the locale of of the user.
 
-        Returns:
-            :class:`quart_wtf.form.QuartForm`: A new instance of the form.
         """
+        # check if formdata needs to be obtained from the request.
         if formdata is _Auto:
             if _is_submitted():
                 formdata = await _get_formdata()
             else:
                 formdata = None
 
-        if cls.Labels is not None:
-            labels = await cls.translate_field_labels(cls.Labels)
+        # check if the `Labels` dict has any data and run. This will also check the `labels`
+        # dict that is passed to this classmethod.
+        if (cls.Labels or labels) is not None:
+            translated_labels = {}
+
+            async def translate_labels(label_data: dict) -> None:
+                for field, text in label_data:
+                    label_txt = await text
+                    translated_labels[field].append(label_txt)
+
+            if cls.Labels is not None:
+                await translate_labels(cls.Labels)
+
+            if labels is not None:
+                await translate_labels(labels)
+
+            labels = translated_labels
         else:
             labels = None
 
-        return cls(*args, formdata=formdata, labels=labels, **kwargs)
-
-    @staticmethod
-    async def translate_field_labels(labels: dict) -> dict:
-        """
-        This is to set the field labels that are to be translated
-        by ``quart_babel`` using ``LazyStrings``. This function
-        is called with ``QuartForm.from_formdata`` then the labels are
-        passed to the init function for processing.
-        """
-        translated_labels = {}
-
-        for field, label in labels:
-            translated_labels[field] = await label()
-
-        return translated_labels
-
-    def set_field_labels(self, labels: dict) -> None:
-        """
-        Sets the field labels for a given field. This
-        is used for text translations.
-        """
-        for field, label in labels:
-            self[field].label = Label(self[field].id, label)
-        return
+        return cls(formdata, obj, prefix, data, meta, labels=labels, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:
         """

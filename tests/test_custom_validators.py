@@ -35,7 +35,7 @@ async def test_custom_validator_success(app, client):
     """
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithCustomValidators().from_formdata()
+        form = await FormWithCustomValidators().create_form()
         assert form.field1.data == 'value1'
         assert form.field2.data == 'value2'
 
@@ -59,7 +59,7 @@ async def test_custom_validator_failure(app, client):
     """
     @app.route('/', methods=['POST'])
     async def index():
-        form = await FormWithCustomValidators().from_formdata()
+        form = await FormWithCustomValidators().create_form()
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
 

@@ -19,7 +19,13 @@ from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRE
 
 logger = logging.getLogger(__name__)
 
-def _get_config(value, config_name, default=None, required=True, message=CSRF_NOT_CONFIGURED):
+def _get_config(
+    value,
+    config_name,
+    default=None,
+    required=True,
+    message=CSRF_NOT_CONFIGURED
+    ):
     """
     Find config value based on provided value, Quart config, and default
     value.

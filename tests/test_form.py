@@ -31,7 +31,7 @@ async def test_populate_from_form(app, client):
     """
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm().from_formdata()
+        form = await BasicForm().create_form()
         assert form.name.data == "form"
 
     await client.post("/", data={"name": "form"})
@@ -43,7 +43,7 @@ async def test_populate_from_files(app, client):
     """
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm().from_formdata()
+        form = await BasicForm().create_form()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "flask.png"
 
@@ -56,7 +56,7 @@ async def test_populate_from_json(app, client):
     """
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm().from_formdata()
+        form = await BasicForm().create_form()
         assert form.name.data == "json"
 
     await client.post("/", data=json.dumps({"name": "json"}))
@@ -68,7 +68,7 @@ async def test_populate_manually(app, client):
     """
     @app.route("/", methods=["POST"])
     async def index():
-        form = await BasicForm.from_formdata(fromdata=request.args)
+        form = await BasicForm.create_form(fromdata=request.args)
         assert form.name.data == "args"
 
     await client.post("/", query_string={"name": "args"})
