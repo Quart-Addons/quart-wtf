@@ -5,11 +5,13 @@ from __future__ import annotations
 import asyncio
 from typing import Optional, Union
 from markupsafe import Markup
+from quart import request
 from wtforms import Form, Label, ValidationError
 from wtforms.widgets import HiddenInput
 from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
 from .meta import QuartFormMeta
-from .utils import _is_submitted, _get_formdata
+
+SUBMIT_METHODS = ("POST", "PUT", "PATCH", "DELETE")
 
 _Auto = object()
 
@@ -72,8 +74,8 @@ class QuartForm(Form):
         """
         # check if formdata needs to be obtained from the request.
         if formdata is _Auto:
-            if _is_submitted():
-                formdata = await _get_formdata()
+            if cls.is_submitted():
+                formdata = await cls._get_formdata()
             else:
                 formdata = None
 
@@ -98,6 +100,24 @@ class QuartForm(Form):
             labels = None
 
         return cls(formdata, obj, prefix, data, meta, labels=labels, **kwargs)
+
+    @staticmethod
+    async def _get_formdata() -> Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]:
+        """
+        Returns the formdata from a given request. Hnadles multi-dict and json
+        content types.
+        """
+        files = await request.files
+        form = await request.form
+
+        if files:
+            return CombinedMultiDict((files, form))
+        elif form:
+            return form
+        elif request.is_json:
+            return ImmutableMultiDict(await request.get_json())
+        else:
+            return None
 
     async def _validate_async(self, validator, field) -> bool:
         """
@@ -147,12 +167,13 @@ class QuartForm(Form):
 
         return success
 
-    def is_submitted(self) -> bool:
+    @staticmethod
+    def is_submitted() -> bool:
         """
         Consider the form submitted if there is an active request and
         the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
         """
-        return _is_submitted()
+        return bool(request) and request.method in SUBMIT_METHODS
 
     async def validate_on_submit(self, extra_validators=None):
         """
