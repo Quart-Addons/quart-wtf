@@ -6,7 +6,7 @@ import asyncio
 from typing import Optional, Union
 from markupsafe import Markup
 from quart import request
-from wtforms import Form, Label, ValidationError
+from wtforms import Form, ValidationError
 from wtforms.widgets import HiddenInput
 from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
 from .meta import QuartFormMeta
@@ -21,7 +21,6 @@ class QuartForm(Form):
     To populate from submitted formdata use the ```.from_submit()``` class
     method to initialize the instance.
     """
-    Labels: Optional[dict] = None
 
     Meta = QuartFormMeta
 
@@ -29,21 +28,15 @@ class QuartForm(Form):
         self,
         formdata: Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]=None,
         obj=None,
-        prefix='',
+        prefix: Optional[str]=None,
         data: Optional[dict]=None,
         meta: Optional[dict]=None,
-        labels: Optional[dict]=None,
         **kwargs
         ) -> None:
         """
         Initialize the form. Takes all the same parameters as WTForms
         base form.
         """
-        # Set the labels for the field if they have been passed.
-        if labels is not None:
-            for field, text in labels:
-                self[field].label = Label(self[field].id, text)
-
         super().__init__(formdata, obj, prefix, data, meta, **kwargs)
 
     @classmethod
@@ -54,7 +47,6 @@ class QuartForm(Form):
         prefix: Optional[str]=None,
         data: Optional[dict]=None,
         meta: Optional[dict]=None,
-        labels: Optional[dict]=None,
         **kwargs
         ) -> QuartForm:
         """
@@ -72,52 +64,27 @@ class QuartForm(Form):
         use a coroutine to get the locale of of the user.
 
         """
-        # check if formdata needs to be obtained from the request.
+        # Check if the formdata has not been passed to and if
+        # if the form has been submitted. If it has been submitted
+        # get it from `quart.request`.
+
         if formdata is _Auto:
             if cls.is_submitted():
-                formdata = await cls._get_formdata()
+                files = await request.files
+                form = await request.form
+
+                if files:
+                    formdata = CombinedMultiDict((files, form))
+                elif form:
+                    formdata = form
+                elif request.is_json():
+                    formdata = ImmutableMultiDict(await request.json())
+                else:
+                    formdata = None
             else:
                 formdata = None
 
-        # check if the `Labels` dict has any data and run. This will also check the `labels`
-        # dict that is passed to this classmethod.
-        if (cls.Labels or labels) is not None:
-            translated_labels = {}
-
-            async def translate_labels(label_data: dict) -> None:
-                for field, text in label_data:
-                    label_txt = await text
-                    translated_labels[field].append(label_txt)
-
-            if cls.Labels is not None:
-                await translate_labels(cls.Labels)
-
-            if labels is not None:
-                await translate_labels(labels)
-
-            labels = translated_labels
-        else:
-            labels = None
-
-        return cls(formdata, obj, prefix, data, meta, labels=labels, **kwargs)
-
-    @staticmethod
-    async def _get_formdata() -> Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]:
-        """
-        Returns the formdata from a given request. Hnadles multi-dict and json
-        content types.
-        """
-        files = await request.files
-        form = await request.form
-
-        if files:
-            return CombinedMultiDict((files, form))
-        elif form:
-            return form
-        elif request.is_json:
-            return ImmutableMultiDict(await request.get_json())
-        else:
-            return None
+        return cls(formdata, obj, prefix, data, meta, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:
         """
