@@ -103,8 +103,7 @@ async def test_form_csrf(app, client):
             return form.csrf_token.errors[0]
 
         return form.csrf_token.current_token
-    
-    async with client.r
+
 @pytest.mark.asyncio
 async def test_form_csrf_old(app, client):
     """
