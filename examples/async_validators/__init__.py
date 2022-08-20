@@ -15,7 +15,7 @@ async def index():
     """
     Main App Route.
     """
-    form = await CreateAccountForm.from_formdata()
+    form = await CreateAccountForm.create_form()
 
     if await form.validate_on_submit():
         print('writing to db.')
@@ -24,6 +24,6 @@ async def index():
 
 def run() -> None:
     """
-    Runs the app. 
+    Runs the app.
     """
     app.run()
