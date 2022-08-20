@@ -1,8 +1,26 @@
 """
 quart_wtf.const
 
-Constants for Quart-WTF.
+Constant strings for CSRF.
 """
+DEFAULT_ENABLED = True
+
+DEFAULT_CHECK_DEFAULT = True
+
+DEFAULT_CSRF_SECRET = None
+
+DEFAULT_CSRF_FIELD_NAME = 'csrf_token'
+
+DEFAULT_CSRF_TIME_LIMIT = 3600
+
+DEFAULT_CSRF_HEADERS = ['X-CSRFToken', 'X-CSRF-Token']
+
+DEFAULT_CSRF_SSL_STRICT = True
+
+DEFAULT_SUBMIT_METHODS = ["POST", "PUT", "PATCH", "DELETE"]
+
+CSRF_NOT_CONFIGURED = "CSRF is not configured.CSRF is not configured."
+
 FIELD_NAME_REQUIRED = "A field name is required to used CSRF."
 
 REFERRER_HEADER = "The referrer header is missing."

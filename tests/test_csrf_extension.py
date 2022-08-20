@@ -4,10 +4,9 @@ Tests the CSRF extension from Quart-WTF.
 import pytest
 from quart import Blueprint, g, render_template_string
 
-from quart_wtf.csrf.const import REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING
-from quart_wtf.csrf.extension import CSRFError, CSRFProtect
-from quart_wtf.csrf.utils import generate_csrf
-from quart_wtf.form import QuartForm
+from quart_wtf import CSRFError, CSRFProtect, QuartForm
+from quart_wtf.const import REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING
+from quart_wtf.utils import generate_csrf
 
 @pytest.fixture
 def app(app):
@@ -169,7 +168,7 @@ async def test_error_handler(app, client):
         return e.description.lower()
 
     response = await client.post("/")
-    assert response.get_data(as_text=True) == "the csrf token is missing."
+    assert response.get_data(as_text=True) == TOKEN_MISSING
 
 @pytest.mark.asyncio
 async def test_validate_error_logged(client, monkeypatch):

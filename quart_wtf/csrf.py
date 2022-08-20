@@ -1,5 +1,5 @@
 """
-quart_wtf.csrf.extension
+quart_wtf.csrf
 
 The CSRF extension for Quart WTF.
 """
@@ -13,6 +13,8 @@ from .const import (DEFAULT_ENABLED, DEFAULT_CHECK_DEFAULT, DEFAULT_CSRF_FIELD_N
                    DEFAULT_CSRF_HEADERS, DEFAULT_CSRF_TIME_LIMIT, DEFAULT_CSRF_SSL_STRICT,
                    DEFAULT_SUBMIT_METHODS, REFERRER_HEADER, REFERRER_HOST, VALIDATION_FAILED)
 from .utils import logger, generate_csrf, validate_csrf, same_origin
+
+__all__ = ["CSRFProtect"]
 
 class CSRFProtect:
     """

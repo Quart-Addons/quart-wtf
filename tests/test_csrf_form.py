@@ -1,14 +1,13 @@
 """
 Tests CSRF with Quart-WTF.
 """
-from crypt import methods
 import pytest
-from quart import g, session
+from quart import g, session, Quart
 from wtforms import ValidationError
 from quart_wtf import QuartForm
-from quart_wtf.csrf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
+from quart_wtf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
                             TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
-from quart_wtf.csrf.utils import generate_csrf, validate_csrf
+from quart_wtf.utils import generate_csrf, validate_csrf
 
 @pytest.mark.asyncio
 async def test_csrf_requires_secret_key(app):
@@ -88,13 +87,13 @@ async def test_validation_errors(app):
         assert str(error.value) == TOKEN_NO_MATCH
 
 @pytest.mark.asyncio
-async def test_form_csrf(app, client):
+async def test_form_csrf(app: Quart, client):
     """
     Test form CSRF.
     """
     @app.route("/", methods=["GET", "POST"])
     async def index():
-        form = await QuartForm.from_formdata()
+        form = await QuartForm.create_form()
 
         if await form.validate_on_submit():
             return "good"
@@ -104,39 +103,21 @@ async def test_form_csrf(app, client):
 
         return form.csrf_token.current_token
 
-@pytest.mark.asyncio
-async def test_form_csrf_old(app, client):
-    """
-    Test form CSRF.
-    """
-    @app.route("/", methods=["GET", "POST"])
-    async def index():
-        form = await QuartForm.from_formdata()
-
-        if await form.validate_on_submit():
-            return "good"
-
-        if form.errors:
-            return form.csrf_token.errors[0]
-
-        return form.csrf_token.current_token
-
+    await app.startup()
+    
     async with app.app_context():
         response = await client.get("/")
         assert await response.get_data(as_text=True) == g.csrf_token
 
         response = await client.post("/")
-        assert await response.get_data(as_text=True) == "The CSRF token is missing."
-
-        response = await client.post("/", data={"csrf_token": g.csrf_token})
-        assert await response.get_data(as_text=True) == "good"
+        assert  await response.get_data(as_text=True) == "The CSRF token is missing."
 
 @pytest.mark.asyncio
 async def test_validate_error_logged(app, monkeypatch):
     """
     Test validation error is logged.
     """
-    from quart_wtf.csrf.utils import logger
+    from quart_wtf.utils import logger
 
     async with app.test_request_context("/"):
         messages = []

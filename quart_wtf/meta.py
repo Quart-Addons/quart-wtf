@@ -1,13 +1,45 @@
 """
 quart_wtf.meta
 
-Defines the WTF meta class for Quart-WTF.
+Defines the WTF meta and CSRF class for Quart-WTF.
 """
-from quart import current_app, session
+from quart import current_app, g, session
+from wtforms import ValidationError
+from wtforms.csrf.core import CSRF
 from wtforms.meta import DefaultMeta
-from werkzeug.utils import cached_property
 
-from .csrf.form import _QuartFormCSRF
+from .utils import logger, generate_csrf, validate_csrf
+
+__all__ = ["QuartFormMeta"]
+
+class _QuartFormCSRF(CSRF):
+    def setup_form(self, form):
+        self.meta = form.meta
+        return super().setup_form(form)
+
+    def generate_csrf_token(self, csrf_token_field):
+
+        return generate_csrf(
+            secret_key=self.meta.csrf_secret,
+            token_key=self.meta.csrf_field_name
+        )
+
+    def validate_csrf_token(self, form, field):
+
+        if g.get("csrf_valid", False):
+            # already validated by CSRFProtect.
+            return
+
+        try:
+            validate_csrf(
+                field.data,
+                self.meta.csrf_secret,
+                self.meta.csrf_time_limit,
+                self.meta.csrf_field_name
+            )
+        except ValidationError as error:
+            logger.info(error.args[0])
+            raise
 
 class QuartFormMeta(DefaultMeta):
     """
