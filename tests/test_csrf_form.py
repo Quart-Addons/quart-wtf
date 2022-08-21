@@ -87,7 +87,7 @@ async def test_validation_errors(app):
         assert str(error.value) == TOKEN_NO_MATCH
 
 @pytest.mark.asyncio
-async def test_form_csrf(app: Quart, client):
+async def test_form_csrf(app, client):
     """
     Test form CSRF.
     """
@@ -103,14 +103,15 @@ async def test_form_csrf(app: Quart, client):
 
         return form.csrf_token.current_token
 
-    await app.startup()
-    
     async with app.app_context():
         response = await client.get("/")
         assert await response.get_data(as_text=True) == g.csrf_token
 
         response = await client.post("/")
         assert  await response.get_data(as_text=True) == "The CSRF token is missing."
+
+        response = await client.post("/", data={"csrf_token": g.csrf_token})
+        assert await response.get_data(as_text=True) == "good"
 
 @pytest.mark.asyncio
 async def test_validate_error_logged(app, monkeypatch):
