@@ -8,11 +8,9 @@ import hmac
 import logging
 import os
 from urllib.parse import urlparse
-from typing import Optional, Union
 
 from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from quart import current_app, g, request, session
-from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableDict
 from wtforms import ValidationError
 
 from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRED,
@@ -22,6 +20,8 @@ from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRE
 
 logger = logging.getLogger(__name__)
 
+_Auto = object()
+
 SUBMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 def _is_submitted() -> bool:
@@ -30,22 +30,6 @@ def _is_submitted() -> bool:
     the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
     """
     return bool(request) and request.method in SUBMIT_METHODS
-
-async def _get_formdata() -> Optional[Union[MultiDict, CombinedMultiDict, ImmutableDict]]:
-    """
-    Return formdata from request. Handles multi-dict and json content types.
-    """
-    files = await request.files
-    form = await request.form
-
-    if files:
-        return CombinedMultiDict((files, form))
-    elif form:
-        return form
-    elif request.is_json():
-        return ImmutableDict(await request.get_json())
-
-    return None
 
 def _get_config(
     value,

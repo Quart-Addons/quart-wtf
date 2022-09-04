@@ -3,12 +3,14 @@ quart_wtf.meta
 
 Defines the WTF meta and CSRF class for Quart-WTF.
 """
-from quart import current_app, g, session
+from quart import current_app, g, request, session
+from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
+from werkzeug.utils import cached_property
 from wtforms import ValidationError
 from wtforms.csrf.core import CSRF
 from wtforms.meta import DefaultMeta
 
-from .utils import logger, generate_csrf, validate_csrf
+from .utils import logger, _Auto, generate_csrf, validate_csrf, _is_submitted
 
 __all__ = ["QuartFormMeta"]
 
@@ -48,30 +50,51 @@ class QuartFormMeta(DefaultMeta):
     csrf_class = _QuartFormCSRF
     csrf_context = session
 
-    @property
+    @cached_property
     def csrf(self) -> bool:
         """
         Determines if CSRF is enabled.
         """
         return current_app.config.get("WTF_CSRF_ENABLED", True)
 
-    @property
+    @cached_property
     def csrf_secret(self):
         """
         CSRF secret key.
         """
         return current_app.config.get("WTF_CSRF_SECRET_KEY", current_app.secret_key)
 
-    @property
+    @cached_property
     def csrf_field_name(self) -> str:
         """
         CSRF field name.
         """
         return current_app.config.get('WTF_CSRF_FIELD_NAME', "csrf_token")
 
-    @property
+    @cached_property
     def csrf_time_limit(self):
         """
         CSRF time limit.
         """
         return current_app.config.get("WTF_CSRF_TIME_LIMIT", 3600)
+
+    async def wrap_formdata(self, form, formdata):
+        """
+        Gets the formdata from the request.
+        """
+        if formdata is _Auto:
+            if _is_submitted():
+                req_files = await request.files
+                req_form = await request.form
+
+                if req_files:
+                    return CombinedMultiDict((req_files, req_form))
+                elif req_form:
+                    return req_form
+                elif request.is_json:
+                    req_json = await request.get_json()
+                    return ImmutableMultiDict(req_json)
+            else:
+                return None
+
+        return formdata
