@@ -10,9 +10,9 @@ from wtforms.widgets import HiddenInput
 from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
 
 from .meta import QuartFormMeta
-from .utils import _Auto, _is_submitted, _get_formdata
+from .utils import _is_submitted, _get_formdata
 
-SUBMIT_METHODS = ("POST", "PUT", "PATCH", "DELETE")
+_Auto = object()
 
 class QuartForm(Form):
     """
@@ -36,19 +36,7 @@ class QuartForm(Form):
         Initialize the form. Takes all the same parameters as WTForms
         base form.
         """
-        meta_obj = self._wtforms_meta()
         super().__init__(formdata, obj, prefix, data, meta, **kwargs)
-
-    async def process(self, formdata=None, obj=None, data=None, extra_filters=None, **kwargs):
-        formdata = await self.meta.wrap_formdata(self, formdata)
-
-        if data is not None:
-            kwargs = dict(data, **kwargs)
-        
-        filters = extra_filters.copy() if extra_filters is not None else {}
-
-
-        return super().process(formdata, obj, data, extra_filters, **kwargs)
 
     @classmethod
     async def create_form(
@@ -83,7 +71,7 @@ class QuartForm(Form):
                 formdata = await _get_formdata()
             else:
                 formdata = None
-
+        
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:

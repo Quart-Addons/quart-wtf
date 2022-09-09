@@ -7,7 +7,9 @@ import hashlib
 import hmac
 import logging
 import os
+from typing import Optional, Union
 from urllib.parse import urlparse
+from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict, MultiDict
 
 from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from quart import current_app, g, request, session
@@ -20,9 +22,9 @@ from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRE
 
 logger = logging.getLogger(__name__)
 
-_Auto = object()
-
 SUBMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+
+FormData = Optional[Union[CombinedMultiDict, ImmutableMultiDict, MultiDict]]
 
 def _is_submitted() -> bool:
     """
@@ -30,6 +32,23 @@ def _is_submitted() -> bool:
     the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
     """
     return bool(request) and request.method in SUBMIT_METHODS
+
+async def _get_formdata() -> FormData:
+    """
+    Gets the formdata from the request.
+    """
+    req_files = await request.files
+    req_form = await request.form
+
+    if req_files:
+        return CombinedMultiDict((req_files, req_form))
+    elif req_form:
+        return req_form
+    elif request.is_json():
+        req_json = await request.json
+        return ImmutableMultiDict(req_json)
+    else:
+        return
 
 def _get_config(
     value,

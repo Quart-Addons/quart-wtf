@@ -3,14 +3,13 @@ quart_wtf.meta
 
 Defines the WTF meta and CSRF class for Quart-WTF.
 """
-from quart import current_app, g, request, session
-from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
+from quart import current_app, g, session
 from werkzeug.utils import cached_property
 from wtforms import ValidationError
 from wtforms.csrf.core import CSRF
 from wtforms.meta import DefaultMeta
 
-from .utils import logger, _Auto, generate_csrf, validate_csrf, _is_submitted
+from .utils import logger, generate_csrf, validate_csrf
 
 __all__ = ["QuartFormMeta"]
 
@@ -77,24 +76,3 @@ class QuartFormMeta(DefaultMeta):
         CSRF time limit.
         """
         return current_app.config.get("WTF_CSRF_TIME_LIMIT", 3600)
-
-    async def wrap_formdata(self, form, formdata):
-        """
-        Gets the formdata from the request.
-        """
-        if formdata is _Auto:
-            if _is_submitted():
-                req_files = await request.files
-                req_form = await request.form
-
-                if req_files:
-                    return CombinedMultiDict((req_files, req_form))
-                elif req_form:
-                    return req_form
-                elif request.is_json:
-                    req_json = await request.get_json()
-                    return ImmutableMultiDict(req_json)
-            else:
-                return None
-
-        return formdata
