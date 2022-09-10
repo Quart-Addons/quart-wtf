@@ -53,16 +53,22 @@ async def test_protect(app, client):
         assert await response.get_data() == b""
         app.config["WTF_CSRF_CHECK_DEFAULT"] = True
 
-        assert await client.options("/").status_code == 200
-        assert await client.post("/not-found").status_code == 404
+        response = await client.options("/")
+        assert response.status_code == 200
+        response = await client.post("/not-found")
+        assert response.status_code == 404
 
         response = await client.get("/")
         assert response.status_code == 200
         token = response.headers["X-CSRF-Token"]
-        assert await client.post("/", data={"csrf_token": token}).status_code == 200
-        assert await client.post("/", data={"prefix-csrf_token": token}).status_code == 200
-        assert await client.post("/", data={"prefix-csrf_token": ""}).status_code == 400
-        assert await client.post("/", headers={"X-CSRF-Token": token}).status_code == 200
+        response = await client.post("/", data={"csrf_token": token})
+        assert response.status_code == 200
+        response = await client.post("/", data={"prefix-csrf_token": token})
+        assert response.status_code == 200
+        response = await client.post("/", data={"prefix-csrf_token": ""})
+        assert response.status_code == 400
+        response = await client.post("/", headers={"X-CSRF-Token": token})
+        assert response.status_code == 200
 
 @pytest.mark.asyncio
 async def test_same_origin(app, client):
