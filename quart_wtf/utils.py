@@ -20,7 +20,7 @@ from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRE
                    TOKEN_NO_MATCH)
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Quart-WTF")
 
 SUBMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
