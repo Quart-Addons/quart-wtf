@@ -31,6 +31,7 @@ class CSRFProtect:
         """
         Initialize the `CSRFProtect` class.
         """
+        self.app = t.Optional[Quart] = None
         self._exempt_views = set()
         self._exempt_blueprints = set()
 
@@ -42,45 +43,45 @@ class CSRFProtect:
         Initialize the `CSRFProtect` class with
         the `Quart` app.
         """
+        self.app = app
         app.extensions["csrf"] = self
 
-        app.config.setdefault("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
-        app.config.setdefault("WTF_CSRF_CHECK_DEFAULT", DEFAULT_CHECK_DEFAULT)
+        app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
+        app.config.get("WTF_CSRF_CHECK_DEFAULT", DEFAULT_CHECK_DEFAULT)
         app.config["WTF_CSRF_METHODS"] = set(
             app.config.get("WTF_CSRF_METHODS", DEFAULT_SUBMIT_METHODS)
         )
-        app.config.setdefault("WTF_CSRF_FIELD_NAME", DEFAULT_CSRF_FIELD_NAME)
-        app.config.setdefault("WTF_CSRF_HEADERS", DEFAULT_CSRF_HEADERS)
-        app.config.setdefault("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
-        app.config.setdefault("WTF_CSRF_SSL_STRICT", DEFAULT_CSRF_SSL_STRICT)
+        app.config.get("WTF_CSRF_FIELD_NAME", DEFAULT_CSRF_FIELD_NAME)
+        app.config.get("WTF_CSRF_HEADERS", DEFAULT_CSRF_HEADERS)
+        app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
+        app.config.get("WTF_CSRF_SSL_STRICT", DEFAULT_CSRF_SSL_STRICT)
 
         app.jinja_env.globals["csrf_token"] = generate_csrf
         app.context_processor(lambda: {"csrf_token": generate_csrf})
+        app.before_request(self.csrf_protect)
 
-        @app.before_request
-        async def csrf_protect():
-            if not app.config["WTF_CSRF_ENABLED"]:
-                return
+    async def csrf_protect(self) -> None:
+        """
+        CSRF protect - Called before request.
+        """
+        if not self.app.config["WTF_CSRF_ENABLED"]:
+            return
+        if not self.app.config["WTF_CSRF_CHECK_DEFAULT"]:
+            return
+        if request.method not in self.app.config["WTF_CSRF_METHODS"]:
+            return
+        if not request.endpoint:
+            return
+        if request.blueprint in self._exempt_blueprints:
+            return
 
-            if not app.config["WTF_CSRF_CHECK_DEFAULT"]:
-                return
+        view = self.app.view_functions.get(request.endpoint)
+        dest = f"{view.__module__}.{view.__name__}"
 
-            if request.method not in app.config["WTF_CSRF_METHODS"]:
-                return
+        if dest in self._exempt_views:
+            return
 
-            if not request.endpoint:
-                return
-
-            if request.blueprint in self._exempt_blueprints:
-                return
-
-            view = app.view_functions.get(request.endpoint)
-            dest = f"{view.__module__}.{view.__name__}"
-
-            if dest in self._exempt_views:
-                return
-
-            await self.protect()
+        await self.protect()
 
     async def _get_csrf_token(self) -> t.Optional[t.Any]:
         """
