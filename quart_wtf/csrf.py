@@ -6,6 +6,7 @@ The CSRF extension for Quart WTF.
 from typing import Any, Callable, Optional, Union
 from quart import Quart, Blueprint, current_app, g, request
 from werkzeug.exceptions import BadRequest
+from werkzeug.datastructures import MultiDict
 from wtforms import ValidationError
 
 from .const import (DEFAULT_ENABLED, DEFAULT_CHECK_DEFAULT, DEFAULT_CSRF_FIELD_NAME,
@@ -30,7 +31,6 @@ class CSRFProtect:
         """
         Initialize the `CSRFProtect` class.
         """
-        self.app: Optional[Quart] = None
         self._exempt_views = set()
         self._exempt_blueprints = set()
 
@@ -47,9 +47,7 @@ class CSRFProtect:
 
         app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
         app.config.get("WTF_CSRF_CHECK_DEFAULT", DEFAULT_CHECK_DEFAULT)
-        app.config["WTF_CSRF_METHODS"] = set(
-            app.config.get("WTF_CSRF_METHODS", DEFAULT_SUBMIT_METHODS)
-        )
+        app.config.get("WTF_CSRF_METHODS", DEFAULT_SUBMIT_METHODS)
         app.config.get("WTF_CSRF_FIELD_NAME", DEFAULT_CSRF_FIELD_NAME)
         app.config.get("WTF_CSRF_HEADERS", DEFAULT_CSRF_HEADERS)
         app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
@@ -60,18 +58,18 @@ class CSRFProtect:
 
         @app.before_request
         async def csrf_protect() -> None:
-            if not self.app.config["WTF_CSRF_ENABLED"]:
+            if not current_app.config["WTF_CSRF_ENABLED"]:
                 return
-            if not self.app.config["WTF_CSRF_CHECK_DEFAULT"]:
+            if not current_app.config["WTF_CSRF_CHECK_DEFAULT"]:
                 return
-            if request.method not in self.app.config["WTF_CSRF_METHODS"]:
+            if request.method not in current_app.config["WTF_CSRF_METHODS"]:
                 return
             if not request.endpoint:
                 return
             if request.blueprint in self._exempt_blueprints:
                 return
 
-            view = self.app.view_functions.get(request.endpoint)
+            view = current_app.view_functions.get(request.endpoint)
             dest = f"{view.__module__}.{view.__name__}"
 
             if dest in self._exempt_views:
@@ -84,8 +82,8 @@ class CSRFProtect:
         Gets the CSRF token.
         """
         # find the token in the form data.
-        field_name = current_app.config["WTF_CSRF_FIELD_NAME"]
-        form = await request.form
+        field_name: str = current_app.config["WTF_CSRF_FIELD_NAME"]
+        form: MultiDict = await request.form
         base_token = form.get(field_name)
 
         if base_token:

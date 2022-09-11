@@ -131,23 +131,3 @@ async def test_validate_error_logged(app, monkeypatch):
         await form.validate()
         assert len(messages) == 1
         assert messages[0] == TOKEN_MISSING
-
-@pytest.mark.asyncio
-async def test_form_csrf_valid(app, client):
-    """
-    Test form CSRF.
-    """
-    @app.route("/", methods=["GET", "POST"])
-    async def index():
-        form = await QuartForm.create_form()
-
-        valid = await form.validate_on_submit()
-
-        if valid:
-            return "good"
-        else:
-            return "bad"
-
-    async with app.app_context():
-        response = await client.post("/", data={"csrf_token": g.csrf_token})
-        assert await response.get_data(as_text=True) == "good"

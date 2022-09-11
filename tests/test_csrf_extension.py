@@ -45,7 +45,7 @@ async def test_protect(app, client):
 
         app.config["WTF_CSRF_ENABLED"] = False
         response = await client.post("/")
-        assert await response.get_data() == b""
+        assert await response.get_data() == ""
         app.config["WTF_CSRF_ENABLED"] = True
 
         app.config["WTF_CSRF_CHECK_DEFAULT"] = False
