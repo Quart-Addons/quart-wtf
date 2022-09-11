@@ -3,6 +3,7 @@ quart_wtf.meta
 
 Defines the WTF meta and CSRF class for Quart-WTF.
 """
+from typing import Any
 from quart import current_app, g, session
 from werkzeug.utils import cached_property
 from wtforms import ValidationError
@@ -14,9 +15,15 @@ from .utils import logger, generate_csrf, validate_csrf
 __all__ = ["QuartFormMeta"]
 
 class _QuartFormCSRF(CSRF):
+    meta = None
+
     def setup_form(self, form):
+        """
+        Setup the form for CSRF.
+        """
         self.meta = form.meta
-        return super().setup_form(form)
+
+        return super(_QuartFormCSRF, self).setup_form(form)
 
     def generate_csrf_token(self, csrf_token_field):
 
@@ -47,7 +54,7 @@ class QuartFormMeta(DefaultMeta):
     Meta class for Quart specific subclass of WTForms.
     """
     csrf_class = _QuartFormCSRF
-    csrf_context = session
+    csrf_context = session # not used, provided for custom CSRF class.
 
     @cached_property
     def csrf(self) -> bool:
@@ -57,7 +64,7 @@ class QuartFormMeta(DefaultMeta):
         return current_app.config.get("WTF_CSRF_ENABLED", True)
 
     @cached_property
-    def csrf_secret(self):
+    def csrf_secret(self) -> Any:
         """
         CSRF secret key.
         """
@@ -71,7 +78,7 @@ class QuartFormMeta(DefaultMeta):
         return current_app.config.get('WTF_CSRF_FIELD_NAME', "csrf_token")
 
     @cached_property
-    def csrf_time_limit(self):
+    def csrf_time_limit(self) -> int:
         """
         CSRF time limit.
         """
