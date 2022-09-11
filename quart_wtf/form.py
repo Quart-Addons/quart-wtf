@@ -3,7 +3,7 @@ Quart-WTF Form
 """
 from __future__ import annotations
 import asyncio
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 from markupsafe import Markup
 from wtforms import Form, ValidationError
 from wtforms.widgets import HiddenInput
@@ -20,32 +20,16 @@ class QuartForm(Form):
     To populate from submitted formdata use the ```.from_submit()``` class
     method to initialize the instance.
     """
-
     Meta = QuartFormMeta
-
-    def __init__(
-        self,
-        formdata: Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]=None,
-        obj=None,
-        prefix: str='',
-        data: Optional[dict]=None,
-        meta: Optional[dict]=None,
-        **kwargs
-        ) -> None:
-        """
-        Initialize the form. Takes all the same parameters as WTForms
-        base form.
-        """
-        super().__init__(formdata, obj, prefix, data, meta, **kwargs)
 
     @classmethod
     async def create_form(
         cls,
         formdata: Union[object, MultiDict, CombinedMultiDict, ImmutableMultiDict]=_Auto,
         obj=None,
-        prefix: str='',
-        data: Optional[dict]=None,
-        meta: Optional[dict]=None,
+        prefix='',
+        data: Optional[Dict]=None,
+        meta: Optional[Dict]=None,
         **kwargs
         ) -> QuartForm:
         """
@@ -71,7 +55,7 @@ class QuartForm(Form):
                 formdata = await _get_formdata()
             else:
                 formdata = None
-        
+
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
     async def _validate_async(self, validator, field) -> bool:
@@ -85,7 +69,7 @@ class QuartForm(Form):
             return False
         return True
 
-    async def validate(self, extra_validators=None) -> bool:
+    async def validate(self, extra_validators: Optional[Dict]=None) -> bool:
         """
         Overload :meth:`validate` to handle custom async validators.
         """
@@ -122,20 +106,20 @@ class QuartForm(Form):
 
         return success
 
-    @staticmethod
-    def is_submitted() -> bool:
+    @property
+    def is_submitted(self) -> bool:
         """
         Consider the form submitted if there is an active request and
         the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
         """
         return _is_submitted()
 
-    async def validate_on_submit(self, extra_validators=None) -> bool:
+    async def validate_on_submit(self, extra_validators: Optional[Dict]=None) -> bool:
         """
         Call :meth:`validate` only if the form is submitted.
         This is a shortcut for ``form.is_submitted() and form.validate()``.
         """
-        return self.is_submitted() and \
+        return self.is_submitted and \
             await self.validate(extra_validators=extra_validators)
 
     def hidden_tag(self, *fields) -> Markup:
