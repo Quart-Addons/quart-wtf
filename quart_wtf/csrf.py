@@ -3,8 +3,7 @@ quart_wtf.csrf
 
 The CSRF extension for Quart WTF.
 """
-import typing as t
-
+from typing import Any, Callable, Optional, Union
 from quart import Quart, Blueprint, current_app, g, request
 from werkzeug.exceptions import BadRequest
 from wtforms import ValidationError
@@ -27,15 +26,15 @@ class CSRFProtect:
     ``{{ csrf_token() }}``.
     See the :ref:`csrf` documentation.
     """
-    def __init__(self, app: t.Optional[Quart]=None) -> None:
+    def __init__(self, app: Optional[Quart]=None) -> None:
         """
         Initialize the `CSRFProtect` class.
         """
-        self.app = t.Optional[Quart] = None
+        self.app: Optional[Quart] = None
         self._exempt_views = set()
         self._exempt_blueprints = set()
 
-        if app:
+        if app is not None:
             self.init_app(app)
 
     def init_app(self, app: Quart) -> None:
@@ -58,32 +57,29 @@ class CSRFProtect:
 
         app.jinja_env.globals["csrf_token"] = generate_csrf
         app.context_processor(lambda: {"csrf_token": generate_csrf})
-        app.before_request(self.csrf_protect)
 
-    async def csrf_protect(self) -> None:
-        """
-        CSRF protect - Called before request.
-        """
-        if not self.app.config["WTF_CSRF_ENABLED"]:
-            return
-        if not self.app.config["WTF_CSRF_CHECK_DEFAULT"]:
-            return
-        if request.method not in self.app.config["WTF_CSRF_METHODS"]:
-            return
-        if not request.endpoint:
-            return
-        if request.blueprint in self._exempt_blueprints:
-            return
+        @app.before_request
+        async def csrf_protect() -> None:
+            if not self.app.config["WTF_CSRF_ENABLED"]:
+                return
+            if not self.app.config["WTF_CSRF_CHECK_DEFAULT"]:
+                return
+            if request.method not in self.app.config["WTF_CSRF_METHODS"]:
+                return
+            if not request.endpoint:
+                return
+            if request.blueprint in self._exempt_blueprints:
+                return
 
-        view = self.app.view_functions.get(request.endpoint)
-        dest = f"{view.__module__}.{view.__name__}"
+            view = self.app.view_functions.get(request.endpoint)
+            dest = f"{view.__module__}.{view.__name__}"
 
-        if dest in self._exempt_views:
-            return
+            if dest in self._exempt_views:
+                return
 
-        await self.protect()
+            await self.protect()
 
-    async def _get_csrf_token(self) -> t.Optional[t.Any]:
+    async def _get_csrf_token(self) -> Optional[Any]:
         """
         Gets the CSRF token.
         """
@@ -139,7 +135,7 @@ class CSRFProtect:
 
         g.csrf_valid = True
 
-    def exempt(self, view):
+    def exempt(self, view: Union[Blueprint, Callable, str]) -> Union[Blueprint, Callable, str]:
         """
         Mark a view or blueprint to be excluded from CSRF protection.
         ::

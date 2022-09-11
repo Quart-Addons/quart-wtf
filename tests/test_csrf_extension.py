@@ -131,6 +131,9 @@ async def test_form_csrf_short_circuit(app, client):
 
 @pytest.mark.asyncio
 async def test_exempt_view(app, csrf, client):
+    """
+    Test exempt view with CSRF.
+    """
     @app.route("/exempt", methods=["POST"])
     @csrf.exempt
     async def exempt():
@@ -145,6 +148,9 @@ async def test_exempt_view(app, csrf, client):
 
 @pytest.mark.asyncio
 async def test_manual_protect(app, csrf, client):
+    """
+    Test manual CSRF protection.
+    """
     @app.route("/manual", methods=["GET", "POST"])
     @csrf.exempt
     async def manual():
