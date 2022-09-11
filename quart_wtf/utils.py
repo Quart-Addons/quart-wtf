@@ -7,7 +7,7 @@ import hashlib
 import hmac
 import logging
 import os
-from typing import Optional, Union
+from typing import Any, Optional, Union
 from urllib.parse import urlparse
 from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict, MultiDict
 
@@ -20,11 +20,23 @@ from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRE
                    TOKEN_NO_MATCH)
 
 
+__all__ = [
+    "logger",
+    "SUBMIT_METHODS",
+    "_is_submitted",
+    "_get_formdata",
+    "_get_config",
+    "generate_csrf",
+    "validate_csrf",
+    "same_origin"
+]
+
 logger = logging.getLogger("Quart-WTF")
 
-SUBMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+SUBMIT_METHODS = ("POST", "PUT", "PATCH", "DELETE")
 
-FormData = Optional[Union[CombinedMultiDict, ImmutableMultiDict, MultiDict]]
+RequestData = Union[CombinedMultiDict, ImmutableMultiDict, MultiDict]
+FormData = Optional[RequestData]
 
 def _is_submitted() -> bool:
     """
@@ -44,22 +56,23 @@ async def _get_formdata() -> FormData:
         return CombinedMultiDict((req_files, req_form))
     elif req_form:
         return req_form
-    elif request.is_json():
-        req_json = await request.json
+    elif request.is_json:
+        req_json = await request.json()
         return ImmutableMultiDict(req_json)
-    else:
-        return
+
+    return None
 
 def _get_config(
-    value,
-    config_name,
-    default=None,
-    required=True,
-    message=CSRF_NOT_CONFIGURED
-    ):
+    value: Any,
+    config_name: str,
+    default: Optional[Any]=None,
+    required: bool=True,
+    message: str=CSRF_NOT_CONFIGURED
+    ) -> Any:
     """
     Find config value based on provided value, Quart config, and default
     value.
+
     :param value: already provided config value
     :param config_name: Quart ``config`` key
     :param default: default value if not provided or configured
@@ -75,12 +88,14 @@ def _get_config(
 
     return value
 
-def generate_csrf(secret_key=None, token_key=None):
+def generate_csrf(secret_key: Any=None, token_key: Any=None) -> Any:
     """
     Generate a CSRF token. The token is cached for a request, so multiple
     calls to this function will generate the same token.
+
     During testing, it might be useful to access the signed token in
     ``g.csrf_token`` and the raw token in ``session['csrf_token']``.
+
     :param secret_key: Used to securely sign the token. Default is
         ``WTF_CSRF_SECRET_KEY`` or ``SECRET_KEY``.
     :param token_key: Key where token is stored in session for comparison.
@@ -116,10 +131,16 @@ def generate_csrf(secret_key=None, token_key=None):
 
     return g.get(field_name)
 
-def validate_csrf(data, secret_key=None, time_limit=None, token_key=None):
+def validate_csrf(
+    data: Any,
+    secret_key: Optional[Any]=None,
+    time_limit: Optional[int]=None,
+    token_key: Optional[Any]=None
+    ) -> None:
     """"
     Check if the given data is a valid CSRF token. This compares the given
     signed token to the one stored in the session.
+
     :param data: The signed CSRF token to be checked.
     :param secret_key: Used to securely sign the token. Default is
         ``WTF_CSRF_SECRET_KEY`` or ``SECRET_KEY``.
@@ -173,6 +194,9 @@ def validate_csrf(data, secret_key=None, time_limit=None, token_key=None):
 def same_origin(current_uri: str, compare_uri: str) -> bool:
     """
     Determines if the request is from the same origin.
+
+    :param current_uri: The current uri
+    :param compare_uri: The uri to compare to the current uri.
     """
     current = urlparse(current_uri)
     compare = urlparse(compare_uri)
