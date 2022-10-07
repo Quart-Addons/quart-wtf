@@ -6,7 +6,6 @@ The CSRF extension for Quart WTF.
 from typing import Any, Callable, Optional, Union
 from quart import Quart, Blueprint, current_app, g, request
 from werkzeug.exceptions import BadRequest
-from werkzeug.datastructures import MultiDict
 from wtforms import ValidationError
 
 from .const import (DEFAULT_ENABLED, DEFAULT_CHECK_DEFAULT, DEFAULT_CSRF_FIELD_NAME,
@@ -42,7 +41,6 @@ class CSRFProtect:
         Initialize the `CSRFProtect` class with
         the `Quart` app.
         """
-        self.app = app
         app.extensions["csrf"] = self
 
         app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
@@ -82,8 +80,8 @@ class CSRFProtect:
         Gets the CSRF token.
         """
         # find the token in the form data.
-        field_name: str = current_app.config["WTF_CSRF_FIELD_NAME"]
-        form: MultiDict = await request.form
+        field_name = current_app.config["WTF_CSRF_FIELD_NAME"]
+        form = await request.form
         base_token = form.get(field_name)
 
         if base_token:
@@ -100,7 +98,7 @@ class CSRFProtect:
 
         # find the token in the request headers
         for header_name in current_app.config["WTF_CSRF_HEADERS"]:
-            csrf_token = request.headers[header_name]
+            csrf_token = request.headers.get(header_name)
 
             if csrf_token:
                 return csrf_token
@@ -114,10 +112,8 @@ class CSRFProtect:
         if request.method not in current_app.config["WTF_CSRF_METHODS"]:
             return
 
-        csrf_token = await self._get_csrf_token()
-
         try:
-            validate_csrf(csrf_token)
+            validate_csrf(await self._get_csrf_token())
         except ValidationError as error:
             logger.info(error.args[0])
             self._error_response(error.args[0])
@@ -131,8 +127,7 @@ class CSRFProtect:
             if not same_origin(request.referrer, good_referrer):
                 self._error_response(REFERRER_HOST)
 
-        current_app.config["csrf_valid"] = True
-        #g.csrf_valid = True
+        g.csrf_valid = True # Mark this request as CSRF valid.
 
     def exempt(self, view: Union[Blueprint, Callable, str]) -> Union[Blueprint, Callable, str]:
         """

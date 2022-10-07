@@ -10,6 +10,7 @@ from wtforms import ValidationError
 from wtforms.csrf.core import CSRF
 from wtforms.meta import DefaultMeta
 
+from .const import DEFAULT_ENABLED, DEFAULT_CSRF_FIELD_NAME, DEFAULT_CSRF_TIME_LIMIT
 from .utils import logger, generate_csrf, validate_csrf
 
 __all__ = ["QuartFormMeta"]
@@ -61,7 +62,7 @@ class QuartFormMeta(DefaultMeta):
         """
         Determines if CSRF is enabled.
         """
-        return current_app.config.get("WTF_CSRF_ENABLED", True)
+        return current_app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
 
     @cached_property
     def csrf_secret(self) -> Any:
@@ -75,11 +76,11 @@ class QuartFormMeta(DefaultMeta):
         """
         CSRF field name.
         """
-        return current_app.config.get('WTF_CSRF_FIELD_NAME', "csrf_token")
+        return current_app.config.get('WTF_CSRF_FIELD_NAME', DEFAULT_CSRF_FIELD_NAME)
 
     @cached_property
     def csrf_time_limit(self) -> int:
         """
         CSRF time limit.
         """
-        return current_app.config.get("WTF_CSRF_TIME_LIMIT", 3600)
+        return current_app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
