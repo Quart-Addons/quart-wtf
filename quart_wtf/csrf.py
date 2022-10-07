@@ -131,7 +131,8 @@ class CSRFProtect:
             if not same_origin(request.referrer, good_referrer):
                 self._error_response(REFERRER_HOST)
 
-        g.csrf_valid = True
+        current_app.config["csrf_valid"] = True
+        #g.csrf_valid = True
 
     def exempt(self, view: Union[Blueprint, Callable, str]) -> Union[Blueprint, Callable, str]:
         """

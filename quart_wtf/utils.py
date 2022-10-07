@@ -33,10 +33,7 @@ __all__ = [
 
 logger = logging.getLogger("Quart-WTF")
 
-SUBMIT_METHODS = ("POST", "PUT", "PATCH", "DELETE")
-
-RequestData = Union[CombinedMultiDict, ImmutableMultiDict, MultiDict]
-FormData = Optional[RequestData]
+SUBMIT_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 def _is_submitted() -> bool:
     """
@@ -45,7 +42,7 @@ def _is_submitted() -> bool:
     """
     return bool(request) and request.method in SUBMIT_METHODS
 
-async def _get_formdata() -> FormData:
+async def _get_formdata() -> Union[CombinedMultiDict, ImmutableMultiDict, MultiDict, None]:
     """
     Gets the formdata from the request.
     """
@@ -54,16 +51,16 @@ async def _get_formdata() -> FormData:
 
     if req_files:
         return CombinedMultiDict((req_files, req_form))
-    elif req_form:
+    if req_form:
         return req_form
-    elif request.is_json:
-        req_json = await request.json()
+    if request.is_json:
+        req_json = await request.get_json()
         return ImmutableMultiDict(req_json)
 
     return None
 
 def _get_config(
-    value: Any,
+    value: Optional[Any],
     config_name: str,
     default: Optional[Any]=None,
     required: bool=True,
@@ -88,7 +85,10 @@ def _get_config(
 
     return value
 
-def generate_csrf(secret_key: Any=None, token_key: Any=None) -> Any:
+def generate_csrf(
+    secret_key: Optional[Any]=None,
+    token_key: Optional[Any]=None
+    ) -> Any:
     """
     Generate a CSRF token. The token is cached for a request, so multiple
     calls to this function will generate the same token.
@@ -102,16 +102,16 @@ def generate_csrf(secret_key: Any=None, token_key: Any=None) -> Any:
         Default is ``WTF_CSRF_FIELD_NAME`` or ``'csrf_token'``.
     """
     secret_key = _get_config(
-        secret_key,
-        "WTF_CSRF_SECRET_KEY",
-        current_app.secret_key,
+        value=secret_key,
+        config_name="WTF_CSRF_SECRET_KEY",
+        default=current_app.secret_key,
         message=SECRET_KEY_REQUIRED
     )
 
     field_name = _get_config(
-        token_key,
-        "WTF_CSRF_FIELD_NAME",
-        "csrf_token",
+        value=token_key,
+        config_name="WTF_CSRF_FIELD_NAME",
+        default="csrf_token",
         message=FIELD_NAME_REQUIRED
     )
 
@@ -153,23 +153,23 @@ def validate_csrf(
         returning ``True`` or ``False``.
     """
     secret_key = _get_config(
-        secret_key,
-        "WTF_CSRF_SECRET_KEY",
-        current_app.secret_key,
+        value=secret_key,
+        config_name="WTF_CSRF_SECRET_KEY",
+        default=current_app.secret_key,
         message=SECRET_KEY_REQUIRED
     )
 
     field_name = _get_config(
-        token_key,
-        "WTF_CSRF_FIELD_NAME",
-        "csrf_token",
+        value=token_key,
+        config_name="WTF_CSRF_FIELD_NAME",
+        default="csrf_token",
         message=FIELD_NAME_REQUIRED
     )
 
     time_limit = _get_config(
-        time_limit,
-        "WTF_CSRF_TIME_LIMIT",
-        3600,
+        value=time_limit,
+        config_name="WTF_CSRF_TIME_LIMIT",
+        default=3600,
         required=False
     )
 

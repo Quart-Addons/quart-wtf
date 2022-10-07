@@ -23,7 +23,7 @@ class _QuartFormCSRF(CSRF):
         """
         self.meta = form.meta
 
-        return super(_QuartFormCSRF, self).setup_form(form)
+        return super().setup_form(form)
 
     def generate_csrf_token(self, csrf_token_field):
 
@@ -40,10 +40,10 @@ class _QuartFormCSRF(CSRF):
 
         try:
             validate_csrf(
-                field.data,
-                self.meta.csrf_secret,
-                self.meta.csrf_time_limit,
-                self.meta.csrf_field_name
+                data=field.data,
+                secret_key=self.meta.csrf_secret,
+                time_limit=self.meta.csrf_time_limit,
+                token_key=self.meta.csrf_field_name
             )
         except ValidationError as error:
             logger.info(error.args[0])

@@ -3,9 +3,9 @@ Quart-WTF Form
 """
 from __future__ import annotations
 import asyncio
-from typing import Dict, Optional, Union
+from typing import Any, Coroutine, Dict, Optional, Union
 from markupsafe import Markup
-from wtforms import Form, ValidationError
+from wtforms import Field, Form, ValidationError
 from wtforms.widgets import HiddenInput
 from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
 
@@ -22,12 +22,26 @@ class QuartForm(Form):
     """
     Meta = QuartFormMeta
 
+    def __init__(
+        self,
+        formdata: Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]=None,
+        obj: Optional[Any]=None,
+        prefix: str="",
+        data: Optional[Dict]=None,
+        meta: Optional[Dict]=None,
+        **kwargs
+        ) -> None:
+        """
+        Initialize ``QuartForm`` class.
+        """
+        super().__init__(formdata, obj, prefix, data, meta, **kwargs)
+
     @classmethod
     async def create_form(
         cls,
         formdata: Union[object, MultiDict, CombinedMultiDict, ImmutableMultiDict]=_Auto,
-        obj=None,
-        prefix='',
+        obj: Optional[Any]=None,
+        prefix: str="",
         data: Optional[Dict]=None,
         meta: Optional[Dict]=None,
         **kwargs
@@ -58,7 +72,7 @@ class QuartForm(Form):
 
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
-    async def _validate_async(self, validator, field) -> bool:
+    async def _validate_async(self, validator: Coroutine, field: Field) -> bool:
         """
         Execute async validator.
         """
@@ -106,7 +120,6 @@ class QuartForm(Form):
 
         return success
 
-    @property
     def is_submitted(self) -> bool:
         """
         Consider the form submitted if there is an active request and
@@ -119,7 +132,7 @@ class QuartForm(Form):
         Call :meth:`validate` only if the form is submitted.
         This is a shortcut for ``form.is_submitted() and form.validate()``.
         """
-        return self.is_submitted and \
+        return self.is_submitted() and \
             await self.validate(extra_validators=extra_validators)
 
     def hidden_tag(self, *fields) -> Markup:
