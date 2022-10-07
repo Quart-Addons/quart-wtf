@@ -2,16 +2,27 @@
 Configures test fixtures.
 """
 import pytest
-from quart import Quart
-    
+from quart import Quart as _Quart
+
+class Quart(_Quart):
+    """
+    Quart Subclass for Testing.
+    """
+    testing = True
+    secret_key = __name__
+
+    async def make_response(self, result):
+        if result is None:
+            result = ""
+
+        return await super().make_response(result)
+
 @pytest.fixture
-def app():
+def app() -> Quart:
     """
     Returns a Quart app for testing.
     """
     app = Quart(__name__)
-    app.config["TESTING"] = True
-    app.config["SECRET_KEY"]= "Quart_WTF_Testing_123"
     return app
 
 @pytest.fixture
