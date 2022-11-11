@@ -43,13 +43,13 @@ class CSRFProtect:
         """
         app.extensions["csrf"] = self
 
-        app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
-        app.config.get("WTF_CSRF_CHECK_DEFAULT", DEFAULT_CHECK_DEFAULT)
-        app.config.get("WTF_CSRF_METHODS", DEFAULT_SUBMIT_METHODS)
-        app.config.get("WTF_CSRF_FIELD_NAME", DEFAULT_CSRF_FIELD_NAME)
-        app.config.get("WTF_CSRF_HEADERS", DEFAULT_CSRF_HEADERS)
-        app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
-        app.config.get("WTF_CSRF_SSL_STRICT", DEFAULT_CSRF_SSL_STRICT)
+        app.config.setdefault("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
+        app.config.setdefault("WTF_CSRF_CHECK_DEFAULT", DEFAULT_CHECK_DEFAULT)
+        app.config.setdefault("WTF_CSRF_METHODS", DEFAULT_SUBMIT_METHODS)
+        app.config.setdefault("WTF_CSRF_FIELD_NAME", DEFAULT_CSRF_FIELD_NAME)
+        app.config.setdefault("WTF_CSRF_HEADERS", DEFAULT_CSRF_HEADERS)
+        app.config.setdefault("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
+        app.config.setdefault("WTF_CSRF_SSL_STRICT", DEFAULT_CSRF_SSL_STRICT)
 
         app.jinja_env.globals["csrf_token"] = generate_csrf
         app.context_processor(lambda: {"csrf_token": generate_csrf})
