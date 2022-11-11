@@ -2,7 +2,7 @@
 Tests the CSRF extension from Quart-WTF.
 """
 import pytest
-from quart import Blueprint, g, render_template_string
+from quart import Blueprint, g, render_template_string, request
 
 from quart_wtf import CSRFError, CSRFProtect, QuartForm
 from quart_wtf.const import REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING
@@ -39,9 +39,10 @@ async def test_protect(app, client):
     #await app.startup()
 
     async with app.app_context():
-        #response = await client.post("/")
-        #assert response.status_code == 400
-        #assert TOKEN_MISSING in await response.get_data(as_text=True)
+        await app.preprocess_request()
+        response = await client.post("/")
+        assert response.status_code == 400
+        assert TOKEN_MISSING in await response.get_data(as_text=True)
 
         app.config["WTF_CSRF_ENABLED"] = False
         response = await client.post("/")
@@ -123,11 +124,14 @@ async def test_form_csrf_short_circuit(app, client):
         # this would fail if CSRFProtect didn't run
         form = QuartForm(formdata=None)
         assert await form.validate()
-    response = await client.get("/")
-    token = response.headers["X-CSRF-Token"]
-    print(token)
-    response = await client.post("/skip", headers={"X-CSRF-Token": token})
-    assert response.status_code == 200
+
+    async with app.test_request_context("/", method="GET"):
+        await app.preprocess_request()
+        token = request.headers["X-CSRF-Token"]
+    
+    async with app.test_request_context("/skip", headers={"X-CSRF-Token": token}):
+        await app.preprocess_request()
+        assert request.status_code == 200
 
 @pytest.mark.asyncio
 async def test_exempt_view(app, csrf, client):
