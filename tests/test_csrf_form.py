@@ -112,7 +112,7 @@ async def test_form_csrf(app, client):
         response = await client.post("/")
         assert  await response.get_data(as_text=True) == "The CSRF token is missing."
 
-        response = await client.post("/", data={"csrf_token": g.csrf_token})
+        response = await client.post("/", form={"csrf_token": g.csrf_token})
         assert await response.get_data(as_text=True) == "good"
 
 @pytest.mark.asyncio

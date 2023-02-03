@@ -3,6 +3,7 @@ Configures test fixtures.
 """
 import pytest
 from quart import Quart as _Quart
+from quart.typing import TestClientProtocol
 
 class Quart(_Quart):
     """
@@ -26,7 +27,7 @@ def app() -> Quart:
     return app
 
 @pytest.fixture
-def client(app):
+def client(app: Quart) -> TestClientProtocol:
     """
     Returns a Quart test client.
     """
