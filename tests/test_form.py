@@ -4,7 +4,9 @@ Tests the Quart-Form form class.
 from io import BytesIO
 import pytest
 
-from quart import json, request
+from quart import Quart, json, request
+from quart.typing import TestClientProtocol
+
 from wtforms import FileField, HiddenField, IntegerField, StringField
 from wtforms.validators import DataRequired
 from wtforms.widgets import HiddenInput
@@ -25,7 +27,7 @@ class BasicForm(QuartForm):
     avatar = FileField()
 
 @pytest.mark.asyncio
-async def test_populate_from_form(app, client):
+async def test_populate_from_form(app: Quart, client: TestClientProtocol) -> None:
     """
     Populates formdata for the form.
     """
@@ -37,7 +39,7 @@ async def test_populate_from_form(app, client):
     await client.post("/", data={"name": "form"})
 
 @pytest.mark.asyncio
-async def test_populate_from_files(app, client):
+async def test_populate_from_files(app: Quart, client: TestClientProtocol) -> None:
     """
     Populates formdata for the form using files.
     """
@@ -50,7 +52,7 @@ async def test_populate_from_files(app, client):
     await client.post("/", data={"name": "files", "avatar": (BytesIO(), "flask.png")})
 
 @pytest.mark.asyncio
-async def test_populate_from_json(app, client):
+async def test_populate_from_json(app: Quart, client: TestClientProtocol) -> None:
     """
     Populates formdata using json.
     """
@@ -62,7 +64,7 @@ async def test_populate_from_json(app, client):
     await client.post("/", data=json.dumps({"name": "json"}))
 
 @pytest.mark.asyncio
-async def test_populate_manually(app, client):
+async def test_populate_manually(app: Quart, client: TestClientProtocol) -> None:
     """
     Manually populates the form.
     """
@@ -74,7 +76,7 @@ async def test_populate_manually(app, client):
     await client.post("/", query_string={"name": "args"})
 
 @pytest.mark.asyncio
-async def test_populate_none(app, client):
+async def test_populate_none(app: Quart, client: TestClientProtocol) -> None:
     """
     Manually populates the form with no formdata.
     """
@@ -86,7 +88,7 @@ async def test_populate_none(app, client):
     await client.post("/", data={"name": "ignore"})
 
 @pytest.mark.asyncio
-async def test_validate_on_submit(app, client):
+async def test_validate_on_submit(app: Quart, client: TestClientProtocol) -> None:
     """
     Tests validate on submit for the form.
     """
@@ -100,7 +102,7 @@ async def test_validate_on_submit(app, client):
     await client.post("/")
 
 @pytest.mark.asyncio
-async def test_no_validate_on_get(app, client):
+async def test_no_validate_on_get(app: Quart, client: TestClientProtocol) -> None:
     """
     Form not valid on GET requet.
     """
@@ -113,7 +115,7 @@ async def test_no_validate_on_get(app, client):
     await client.get("/")
 
 @pytest.mark.asyncio
-async def test_hidden_tag(app):
+async def test_hidden_tag(app: Quart) -> None:
     """
     Tests custom hidden tag rendering.
     """

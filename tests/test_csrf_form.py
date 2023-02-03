@@ -2,15 +2,17 @@
 Tests CSRF with Quart-WTF.
 """
 import pytest
-from quart import g, request, session
+from quart import Quart, g, request, session
+from quart.typing import TestClientProtocol
 from wtforms import ValidationError
+
 from quart_wtf import QuartForm
 from quart_wtf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
                             TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
 from quart_wtf.utils import generate_csrf, validate_csrf, logger
 
 @pytest.mark.asyncio
-async def test_csrf_requires_secret_key(app):
+async def test_csrf_requires_secret_key(app: Quart) -> None:
     """
     Test to make sure CSRF requires a secret key.
     """
@@ -28,7 +30,7 @@ async def test_csrf_requires_secret_key(app):
         generate_csrf(secret_key="direct")
 
 @pytest.mark.asyncio
-async def test_token_stored_by_generate(app):
+async def test_token_stored_by_generate(app: Quart) -> None:
     """
     Test token stored.
     """
@@ -38,7 +40,7 @@ async def test_token_stored_by_generate(app):
         assert "csrf_token" in g
 
 @pytest.mark.asyncio
-async def test_custom_token_key(app):
+async def test_custom_token_key(app: Quart) -> None:
     """
     Test custom token.
     """
@@ -48,7 +50,7 @@ async def test_custom_token_key(app):
         assert "oauth_token" in g
 
 @pytest.mark.asyncio
-async def test_token_cached(app):
+async def test_token_cached(app: Quart) -> None:
     """
     Test token cached.
     """
@@ -56,7 +58,7 @@ async def test_token_cached(app):
         assert generate_csrf() == generate_csrf()
 
 @pytest.mark.asyncio
-async def test_validate(app):
+async def test_validate(app: Quart) -> None:
     """
     Test validating CSRF.
     """
@@ -64,7 +66,7 @@ async def test_validate(app):
         validate_csrf(generate_csrf())
 
 @pytest.mark.asyncio
-async def test_validation_errors(app):
+async def test_validation_errors(app: Quart) -> None:
     """
     Test CSRF validation errors.
     """
@@ -87,7 +89,7 @@ async def test_validation_errors(app):
         assert str(error.value) == TOKEN_NO_MATCH
 
 @pytest.mark.asyncio
-async def test_form_csrf(app, client):
+async def test_form_csrf(app: Quart, client: TestClientProtocol) -> None:
     """
     Test form CSRF.
     """
@@ -116,7 +118,7 @@ async def test_form_csrf(app, client):
         assert await response.get_data(as_text=True) == "good"
 
 @pytest.mark.asyncio
-async def test_validate_error_logged(app, monkeypatch):
+async def test_validate_error_logged(app: Quart, monkeypatch) -> None:
     """
     Test validation error is logged.
     """

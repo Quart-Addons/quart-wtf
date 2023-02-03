@@ -2,6 +2,7 @@
 Tests file handing with Quart-WTF.
 """
 import pytest
+from quart import Quart
 from quart.datastructures import FileStorage
 from werkzeug.datastructures import MultiDict
 from wtforms import FileField as BaseFileField
@@ -23,7 +24,7 @@ class UploadForm(QuartForm):
     file = FileField()
 
 @pytest.mark.asyncio
-async def test_process_formdata(app):
+async def test_process_formdata(app: Quart) -> None:
     """
     Tests prcessing formdata with files.
     """
@@ -34,7 +35,7 @@ async def test_process_formdata(app):
         assert UploadForm(formdata=formdata).file.data is not None
 
 @pytest.mark.asyncio
-async def test_file_required(app):
+async def test_file_required(app: Quart) -> None:
     """
     Tests file required.
     """
@@ -56,7 +57,7 @@ async def test_file_required(app):
         assert await form.validate()
 
 @pytest.mark.asyncio
-async def test_file_allowed(app):
+async def test_file_allowed(app: Quart) -> None:
     """
     Tests if a file is allowed.
     """
@@ -74,7 +75,7 @@ async def test_file_allowed(app):
         assert form.file.errors[0] == "File does not have an approved extension: txt"
 
 @pytest.mark.asyncio
-async def test_file_allowed_uploadset(app, tmp_path):
+async def test_file_allowed_uploadset(app: Quart, tmp_path) -> None:
     """
     Test Quart-WTF with Quart-Uploads.
     """
@@ -98,7 +99,7 @@ async def test_file_allowed_uploadset(app, tmp_path):
         assert form.file.errors[0] == "File does not have an approved extension."
 
 @pytest.mark.asyncio
-async def test_file_size_no_file_passes_validation(app):
+async def test_file_size_no_file_passes_validation(app: Quart) -> None:
     """
     Tests file size validator.
     """
@@ -109,7 +110,7 @@ async def test_file_size_no_file_passes_validation(app):
         assert await form.validate()
 
 @pytest.mark.asyncio
-async def test_file_size_small_file_passes_validation(app, tmp_path):
+async def test_file_size_small_file_passes_validation(app: Quart, tmp_path) -> None:
     """
     Tests small file size.
     """
@@ -130,8 +131,8 @@ async def test_file_size_small_file_passes_validation(app, tmp_path):
 
 @pytest.mark.asyncio
 async def test_file_size_invalid_file_size_fails_validation(
-    app, min_size, max_size, invalid_file_size, tmp_path
-):
+    app: Quart, min_size, max_size, invalid_file_size, tmp_path
+) -> None:
     """
     Tests invalid file size.
     """
@@ -147,7 +148,7 @@ async def test_file_size_invalid_file_size_fails_validation(
             assert form.file.errors[0] == f"File must be between {min_size} and {max_size} bytes."
 
 @pytest.mark.asyncio
-async def test_validate_base_field(app):
+async def test_validate_base_field(app: Quart) -> None:
     """
     Test validating file base field.
     """

@@ -3,6 +3,8 @@ Tests async validators with Quart-WTF.
 """
 import asyncio
 import pytest
+from quart import Quart
+from quart.typing import TestClientProtocol
 from wtforms import StringField
 from wtforms.validators import DataRequired, ValidationError
 
@@ -51,7 +53,7 @@ class FormWithAsyncException(QuartForm):
         raise Exception('test')
 
 @pytest.mark.asyncio
-async def test_async_validator_success(app, client):
+async def test_async_validator_success(app: Quart, client: TestClientProtocol) -> None:
     """
     Test custom async validator success.
     """
@@ -75,7 +77,7 @@ async def test_async_validator_success(app, client):
     await client.post('/', data={'field1': 'value1', 'field2': 'value2'})
 
 @pytest.mark.asyncio
-async def test_async_validator_error(app, client):
+async def test_async_validator_error(app: Quart, client: TestClientProtocol) -> None:
     """
     Tests async validator error.
     """
@@ -101,7 +103,7 @@ async def test_async_validator_error(app, client):
     await client.post('/', data={'field1': 'xxx1', 'field2': 'xxx2'})
 
 @pytest.mark.asyncio
-async def test_data_required_error(app, client):
+async def test_data_required_error(app: Quart, client: TestClientProtocol) -> None:
     """
     Tests data required error using async.
     """
@@ -126,7 +128,7 @@ async def test_data_required_error(app, client):
     await client.post('/', data={'field1': 'xxx1'})
 
 @pytest.mark.asyncio
-async def test_async_validator_exception(app, client):
+async def test_async_validator_exception(app: Quart, client: TestClientProtocol) -> None:
     """
     Test async validator exception.
     """

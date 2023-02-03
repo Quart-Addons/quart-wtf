@@ -2,6 +2,8 @@
 Tests custom validators with Quart-WTF.
 """
 import pytest
+from quart import Quart
+from quart.typing import TestClientProtocol
 from wtforms import StringField
 from wtforms.validators import ValidationError
 
@@ -29,7 +31,7 @@ class FormWithCustomValidators(QuartForm):
             raise ValidationError('Field value is incorrect.')
 
 @pytest.mark.asyncio
-async def test_custom_validator_success(app, client):
+async def test_custom_validator_success(app: Quart, client: TestClientProtocol) -> None:
     """
     Test custom validators with success.
     """
@@ -53,7 +55,7 @@ async def test_custom_validator_success(app, client):
     await client.post('/', data={'field1': 'value1', 'field2': 'value2'})
 
 @pytest.mark.asyncio
-async def test_custom_validator_failure(app, client):
+async def test_custom_validator_failure(app: Quart, client: TestClientProtocol) -> None:
     """
     Test custom validators with failure.
     """
