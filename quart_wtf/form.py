@@ -104,7 +104,7 @@ class QuartForm(Form):
             func = getattr(self.__class__, f"async_validate_{name}", None)
             if func:
                 async_validators[name] = (func, field)
-                extra.setdefault[name, []].append(record_status)
+                extra.setdefault(name, []).append(record_status)
 
         # execute non-async validators
         success = super().validate(extra_validators=extra)
