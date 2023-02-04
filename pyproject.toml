@@ -32,7 +32,6 @@ quart = "^0.18.0"
 WTForms = "^3.0.1"
 
 [tool.poetry.dev-dependencies]
-quart-babel = "^1.0.0"
 quart_uploads = "^0.0.1"
 pytest = "^7.1.2"
 pytest-asyncio = "^0.19.0"
