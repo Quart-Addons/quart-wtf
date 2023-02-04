@@ -3,14 +3,26 @@ quart_wtf.csrf
 
 The CSRF extension for Quart WTF.
 """
-from typing import Any, Callable, Optional, Union
+import typing as t
+
 from quart import Quart, Blueprint, current_app, g, request
 from werkzeug.exceptions import BadRequest
 from wtforms import ValidationError
 
-from .const import (DEFAULT_ENABLED, DEFAULT_CHECK_DEFAULT, DEFAULT_CSRF_FIELD_NAME,
-                   DEFAULT_CSRF_HEADERS, DEFAULT_CSRF_TIME_LIMIT, DEFAULT_CSRF_SSL_STRICT,
-                   DEFAULT_SUBMIT_METHODS, REFERRER_HEADER, REFERRER_HOST, VALIDATION_FAILED)
+from .const import (
+    DEFAULT_ENABLED,
+    DEFAULT_CHECK_DEFAULT,
+    DEFAULT_CSRF_FIELD_NAME,
+    DEFAULT_CSRF_HEADERS,
+    DEFAULT_CSRF_TIME_LIMIT,
+    DEFAULT_CSRF_SSL_STRICT,
+    DEFAULT_SUBMIT_METHODS,
+    REFERRER_HEADER,
+    REFERRER_HOST,
+    VALIDATION_FAILED
+)
+
+from .typing import ViewsType
 from .utils import logger, generate_csrf, validate_csrf, same_origin
 
 __all__ = ["CSRFProtect"]
@@ -26,7 +38,7 @@ class CSRFProtect:
     ``{{ csrf_token() }}``.
     See the :ref:`csrf` documentation.
     """
-    def __init__(self, app: Optional[Quart]=None) -> None:
+    def __init__(self, app: Quart | None=None) -> None:
         """
         Initialize the `CSRFProtect` class.
         """
@@ -75,7 +87,7 @@ class CSRFProtect:
 
             await self.protect()
 
-    async def _get_csrf_token(self) -> Optional[Any]:
+    async def _get_csrf_token(self) -> t.Any | None:
         """
         Gets the CSRF token.
         """
@@ -129,7 +141,7 @@ class CSRFProtect:
 
         g.csrf_valid = True # Mark this request as CSRF valid.
 
-    def exempt(self, view: Union[Blueprint, Callable, str]) -> Union[Blueprint, Callable, str]:
+    def exempt(self, view: ViewsType) -> ViewsType:
         """
         Mark a view or blueprint to be excluded from CSRF protection.
         ::

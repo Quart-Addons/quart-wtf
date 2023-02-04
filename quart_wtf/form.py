@@ -3,13 +3,14 @@ Quart-WTF Form
 """
 from __future__ import annotations
 import asyncio
-from typing import Any, Coroutine, Dict, Optional, Union
+import typing as t
+
 from markupsafe import Markup
 from wtforms import Field, Form, ValidationError
 from wtforms.widgets import HiddenInput
-from werkzeug.datastructures import MultiDict, CombinedMultiDict, ImmutableMultiDict
 
 from .meta import QuartFormMeta
+from .typing import FormData
 from .utils import _is_submitted, _get_formdata
 
 _Auto = object()
@@ -24,11 +25,11 @@ class QuartForm(Form):
 
     def __init__(
         self,
-        formdata: Optional[Union[MultiDict, CombinedMultiDict, ImmutableMultiDict]]=None,
-        obj: Optional[Any]=None,
+        formdata: FormData=None,
+        obj: t.Any | None=None,
         prefix: str="",
-        data: Optional[Dict]=None,
-        meta: Optional[Dict]=None,
+        data: t.Dict | None=None,
+        meta: t.Dict | None=None,
         **kwargs
         ) -> None:
         """
@@ -39,11 +40,11 @@ class QuartForm(Form):
     @classmethod
     async def create_form(
         cls,
-        formdata: Union[object, MultiDict, CombinedMultiDict, ImmutableMultiDict]=_Auto,
-        obj: Optional[Any]=None,
+        formdata: object | FormData=_Auto,
+        obj: t.Any | None=None,
         prefix: str="",
-        data: Optional[Dict]=None,
-        meta: Optional[Dict]=None,
+        data: t.Dict | None=None,
+        meta: t.Dict | None=None,
         **kwargs
         ) -> QuartForm:
         """
@@ -72,7 +73,7 @@ class QuartForm(Form):
 
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
-    async def _validate_async(self, validator: Coroutine, field: Field) -> bool:
+    async def _validate_async(self, validator: t.Coroutine, field: Field) -> bool:
         """
         Execute async validator.
         """
@@ -83,7 +84,7 @@ class QuartForm(Form):
             return False
         return True
 
-    async def validate(self, extra_validators: Optional[Dict]=None) -> bool:
+    async def validate(self, extra_validators: t.Dict | None=None) -> bool:
         """
         Overload :meth:`validate` to handle custom async validators.
         """
@@ -127,7 +128,7 @@ class QuartForm(Form):
         """
         return _is_submitted()
 
-    async def validate_on_submit(self, extra_validators: Optional[Dict]=None) -> bool:
+    async def validate_on_submit(self, extra_validators: t.Dict | None=None) -> bool:
         """
         Call :meth:`validate` only if the form is submitted.
         This is a shortcut for ``form.is_submitted() and form.validate()``.

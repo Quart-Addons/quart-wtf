@@ -7,18 +7,27 @@ import hashlib
 import hmac
 import logging
 import os
-from typing import Any, Optional, Union
+import typing as t
+
 from urllib.parse import urlparse
-from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict, MultiDict
+from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
 
 from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from quart import current_app, g, request, session
 from wtforms import ValidationError
 
-from .const import (CSRF_NOT_CONFIGURED, FIELD_NAME_REQUIRED, SECRET_KEY_REQUIRED,
-                   SESSION_TOKEN_MISSING, TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
-                   TOKEN_NO_MATCH)
+from .const import (
+    CSRF_NOT_CONFIGURED,
+    FIELD_NAME_REQUIRED,
+    SECRET_KEY_REQUIRED,
+    SESSION_TOKEN_MISSING,
+    TOKEN_EXPIRED,
+    TOKEN_INVALID,
+    TOKEN_MISSING,
+    TOKEN_NO_MATCH
+)
 
+from .typing import FormData
 
 __all__ = [
     "logger",
@@ -42,7 +51,7 @@ def _is_submitted() -> bool:
     """
     return bool(request) and request.method in SUBMIT_METHODS
 
-async def _get_formdata() -> Union[CombinedMultiDict, ImmutableMultiDict, MultiDict, None]:
+async def _get_formdata() -> FormData:
     """
     Gets the formdata from the request.
     """
@@ -60,12 +69,12 @@ async def _get_formdata() -> Union[CombinedMultiDict, ImmutableMultiDict, MultiD
     return None
 
 def _get_config(
-    value: Optional[Any],
+    value: t.Any | None,
     config_name: str,
-    default: Optional[Any]=None,
+    default: t.Any | None=None,
     required: bool=True,
     message: str=CSRF_NOT_CONFIGURED
-    ) -> Any:
+    ) -> t.Any:
     """
     Find config value based on provided value, Quart config, and default
     value.
@@ -86,9 +95,9 @@ def _get_config(
     return value
 
 def generate_csrf(
-    secret_key: Optional[Any]=None,
-    token_key: Optional[Any]=None
-    ) -> Any:
+    secret_key: t.Any | None=None,
+    token_key: t.Any | None=None
+    ) -> t.Any:
     """
     Generate a CSRF token. The token is cached for a request, so multiple
     calls to this function will generate the same token.
@@ -132,10 +141,10 @@ def generate_csrf(
     return g.get(field_name)
 
 def validate_csrf(
-    data: Any,
-    secret_key: Optional[Any]=None,
-    time_limit: Optional[int]=None,
-    token_key: Optional[Any]=None
+    data: t.Any,
+    secret_key: t.Any | None=None,
+    time_limit: int | None=None,
+    token_key: t.Any | None=None
     ) -> None:
     """"
     Check if the given data is a valid CSRF token. This compares the given

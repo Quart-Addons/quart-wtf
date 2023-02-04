@@ -3,7 +3,8 @@ quart_wtf.meta
 
 Defines the WTF meta and CSRF class for Quart-WTF.
 """
-from typing import Any
+import typing as t
+
 from quart import current_app, g, session
 from werkzeug.utils import cached_property
 from wtforms import ValidationError
@@ -65,7 +66,7 @@ class QuartFormMeta(DefaultMeta):
         return current_app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
 
     @cached_property
-    def csrf_secret(self) -> Any:
+    def csrf_secret(self) -> t.Any:
         """
         CSRF secret key.
         """
