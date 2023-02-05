@@ -6,7 +6,6 @@ from wtforms.validators import DataRequired, EqualTo
 from wtforms.widgets import PasswordInput
 from quart_wtf import QuartForm
 
-
 from .model import UserTable, get_repo, check_username_is_taken
 
 class CreateAccountForm(QuartForm):
