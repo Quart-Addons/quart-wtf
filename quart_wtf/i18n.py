@@ -44,12 +44,11 @@ class Translations:
         and will call the default domain from babel. Else it
         will use the custom domain provided.
         """
-        state = get_state(silent=True)
-
-        if not state:
-            return None
-
         if self.domain is None:
+            state = get_state(silent=True)
+
+            if not state:
+                return None
             return state.domain
 
         return self.domain
