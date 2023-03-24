@@ -3,7 +3,6 @@ quart_wtf.file
 
 File fields for Quart-WTF.
 """
-
 from collections import abc
 
 from quart.datastructures import FileStorage
@@ -17,6 +16,9 @@ class FileField(_FileField):
     """Werkzeug-aware subclass of :class:`wtforms.fields.FileField`."""
 
     def process_formdata(self, valuelist):
+        """
+        This function processes the formdata for the `FileField`.
+        """
         valuelist = (x for x in valuelist if isinstance(x, FileStorage) and x)
         data = next(valuelist, None)
 

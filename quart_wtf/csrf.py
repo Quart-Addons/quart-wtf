@@ -33,14 +33,20 @@ class CSRFProtect:
     ::
         app = Quart(__name__)
         csrf = CSRFProtect(app)
+
     Checks the ``csrf_token`` field sent with forms, or the ``X-CSRFToken``
     header sent with JavaScript requests. Render the token in templates using
     ``{{ csrf_token() }}``.
+
     See the :ref:`csrf` documentation.
     """
     def __init__(self, app: Quart | None=None) -> None:
         """
         Initialize the `CSRFProtect` class.
+
+        Arguments:
+        ----------
+            app: The `Quart` application.
         """
         self._exempt_views = set()
         self._exempt_blueprints = set()
@@ -52,6 +58,10 @@ class CSRFProtect:
         """
         Initialize the `CSRFProtect` class with
         the `Quart` app.
+
+        Arguments:
+        ----------
+            app: The `Quart` application.
         """
         app.extensions["csrf"] = self
 
@@ -65,27 +75,31 @@ class CSRFProtect:
 
         app.jinja_env.globals["csrf_token"] = generate_csrf
         app.context_processor(lambda: {"csrf_token": generate_csrf})
+        app.before_request(self._before_request)
 
-        @app.before_request
-        async def csrf_protect() -> None:
-            if not current_app.config["WTF_CSRF_ENABLED"]:
-                return
-            if not current_app.config["WTF_CSRF_CHECK_DEFAULT"]:
-                return
-            if request.method not in current_app.config["WTF_CSRF_METHODS"]:
-                return
-            if not request.endpoint:
-                return
-            if request.blueprint in self._exempt_blueprints:
-                return
+    async def _before_request(self) -> None:
+        """
+        This function performs the setup for CSRF and calls the
+        `.protect` function. It is called before a request. 
+        """
+        if not current_app.config["WTF_CSRF_ENABLED"]:
+            return
+        if not current_app.config["WTF_CSRF_CHECK_DEFAULT"]:
+            return
+        if request.method not in current_app.config["WTF_CSRF_METHODS"]:
+            return
+        if not request.endpoint:
+            return
+        if request.blueprint in self._exempt_blueprints:
+            return
 
-            view = current_app.view_functions.get(request.endpoint)
-            dest = f"{view.__module__}.{view.__name__}"
+        view = current_app.view_functions.get(request.endpoint)
+        dest = f"{view.__module__}.{view.__name__}"
 
-            if dest in self._exempt_views:
-                return
+        if dest in self._exempt_views:
+            return
 
-            await self.protect()
+        await self.protect()
 
     async def _get_csrf_token(self) -> t.Any | None:
         """

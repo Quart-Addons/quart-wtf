@@ -18,7 +18,7 @@ _Auto = object()
 class QuartForm(Form):
     """
     Quart specific subclass of WTForms :class:`~wtforms.form.Form`.
-    To populate from submitted formdata use the ```.from_submit()``` class
+    To populate from submitted formdata use the ```.create_form``` class
     method to initialize the instance.
     """
     Meta = QuartFormMeta
@@ -34,6 +34,39 @@ class QuartForm(Form):
         ) -> None:
         """
         Initialize ``QuartForm`` class.
+
+        Arguments:
+        ----------
+            formdata: Input data coming from the client, usually
+            ``request.form`` or equivalent. Should provide a "multi
+            dict" interface to get a list of values for a given key.
+
+            obj: Take existing data from attributes on this object
+            matching form field attributes. Only used if ``formdata`` is
+            not passed.
+
+            prefix: If provided, all fields will have their name
+            prefixed with the value. This is for distinguishing multiple
+            forms on a single page. This only affects the HTML name for
+            matching input data, not the Python name for matching
+            existing data.
+
+            data: Take existing data from keys in this dict matching
+            form field attributes. ``obj`` takes precedence if it also
+            has a matching attribute. Only used if ``formdata`` is not
+            passed.
+
+            meta: A dict of attributes to override on this form's 
+            :attr:`meta` instance.
+
+            extra_filters: A dict mapping field attribute names to
+            lists of extra filter functions to run. Extra filters run
+            after filters passed when creating the field. If the form
+            has ``filter_<fieldname>``, it is the last extra filter.
+
+            kwargs: Merged with ``data`` to allow passing existing
+            data as parameters. Overwrites any duplicate keys in
+            ``data``. Only used if ``formdata`` is not passed.
         """
         super().__init__(formdata, obj, prefix, data, meta, **kwargs)
 
@@ -48,7 +81,8 @@ class QuartForm(Form):
         **kwargs
         ) -> QuartForm:
         """
-        This is a async method will create a new instance of ``QuartForm``.
+        This creates a new instance of the form and can only be called within
+        your applications routes.
 
         This method is primiarly used to intialize the class from submitted
         formdata from ``Quart.request``. If a request is a POST, PUT, PATCH,
@@ -57,10 +91,38 @@ class QuartForm(Form):
         ``request.form``, and ``request.json`` are coroutines and need to be called in an
         async manner.
 
-        Also, if you are using ``quart_babel`` for translating components of this form, such
-        as field labels. This method will call the lazy text as a coroutine, since ``quart_babel``
-        use a coroutine to get the locale of of the user.
+        Arguments:
+        ----------
+            formdata: Input data coming from the client, usually
+            ``request.form`` or equivalent. Should provide a "multi
+            dict" interface to get a list of values for a given key.
 
+            obj: Take existing data from attributes on this object
+            matching form field attributes. Only used if ``formdata`` is
+            not passed.
+
+            prefix: If provided, all fields will have their name
+            prefixed with the value. This is for distinguishing multiple
+            forms on a single page. This only affects the HTML name for
+            matching input data, not the Python name for matching
+            existing data.
+
+            data: Take existing data from keys in this dict matching
+            form field attributes. ``obj`` takes precedence if it also
+            has a matching attribute. Only used if ``formdata`` is not
+            passed.
+
+            meta: A dict of attributes to override on this form's 
+            :attr:`meta` instance.
+
+            extra_filters: A dict mapping field attribute names to
+            lists of extra filter functions to run. Extra filters run
+            after filters passed when creating the field. If the form
+            has ``filter_<fieldname>``, it is the last extra filter.
+
+            kwargs: Merged with ``data`` to allow passing existing
+            data as parameters. Overwrites any duplicate keys in
+            ``data``. Only used if ``formdata`` is not passed.
         """
         # Check if the formdata has not been passed to and if
         # if the form has been submitted. If it has been submitted
