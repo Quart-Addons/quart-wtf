@@ -2,7 +2,7 @@
 Tests the CSRF extension from Quart-WTF.
 """
 import pytest
-from quart import Quart, Blueprint, g, render_template_string, request
+from quart import Quart, Blueprint, g, render_template_string
 from quart.typing import TestClientProtocol
 
 from quart_wtf import CSRFError, CSRFProtect, QuartForm
