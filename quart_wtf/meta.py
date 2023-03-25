@@ -12,9 +12,8 @@ from wtforms.csrf.core import CSRF
 from wtforms.meta import DefaultMeta
 
 from .const import DEFAULT_ENABLED, DEFAULT_CSRF_FIELD_NAME, DEFAULT_CSRF_TIME_LIMIT
-from .i18n import translations
+from .i18n import Translations, translations
 from .utils import logger, generate_csrf, validate_csrf
-from .typing import Babel_Domain
 
 __all__ = ["QuartFormMeta"]
 
@@ -88,39 +87,12 @@ class QuartFormMeta(DefaultMeta):
         """
         return current_app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
 
-    @cached_property
-    def i18n_babel(self) -> bool:
-        """
-        See if babel is installed on the current app.
-        """
-        if current_app.extensions['babel']:
-            return True
-        return False
-
-    @cached_property
-    def i18n_domain(self) -> Babel_Domain | None:
-        """
-        Babel domain to use for the form. This can be overridden to provide
-        a custom `quart_babel.Domain` to use fo the form. By default it will
-        use the quart config variable `"WTF_I18N_DOMAIN"` to set the domain.
-        """
-        return current_app.config.get("WTF_I18N_DOMAIN", None)
-
-    @cached_property
-    def i18n_enabled(self) -> bool:
-        """
-        Determines I18N is enabled.
-        """
-        return current_app.config.get("WTF_I18N_ENABLED", True)
-
-    def get_translations(self, form) -> translations | None:
+    def get_translations(self, form) -> Translations | None:
         """
         Gets translations for the form.
         """
-        if not self.i18n_enabled or self.i18n_babel:
-            # Babel not enabled or installed
+        if not current_app.config.get("WTF_I18N_ENABLED", True):
+            # Babel not enabled
             return super().get_translations(form)
-
-        translations.domain = self.i18n_domain
 
         return translations

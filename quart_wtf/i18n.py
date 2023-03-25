@@ -5,55 +5,35 @@ Translation support for Quart WTF.
 """
 from numbers import Number
 
+from quart import request
 from quart_babel import Domain
 from quart_babel.utils import get_state
 
-__all__ = ("Translations", "translations")
-
 class Translations:
     """
-    Provides translation support to `quart_wtf` using
-    `quart_babel`.
+    i18n translations using `Quart_Babel`.
     """
-    _domain: Domain | None = None
+    domain: Domain | None = None
 
-    @property
-    def domain(self) -> Domain | None:
+    def _get_translations(self) -> Domain | None:
         """
-        Returns the domain to use. Defaults
-        to ``None``.
+        Returns the correct translations object for the
+        WTForms Babel domain.
         """
-        return self._domain
+        state = get_state(silent=True)
+        if not state:
+            return None
 
-    @domain.setter
-    def domain(self, value: Domain) -> None:
-        self._domain = value
+        translations = getattr(request, "wtforms_translations", None)
 
-    def _get_domain(self) -> Domain | None:
-        """
-        Get the `quart_babel.domain` to use for
-        translations.
+        if translations is None:
+            if self.domain is None:
+                self.domain = Domain(domain="wtforms")
+            translations = self.domain
 
-        This function will first determine the babel
-        state by calling `quart_babel.utils.get_state`
-        function in silent mode.
+        return translations
 
-        If the state is ``None`` (Babel is not registered
-        with the app) it will return ``None``. Otherwise
-        it will determine if `Translations.domain` is ``None``
-        and will call the default domain from babel. Else it
-        will use the custom domain provided.
-        """
-        if self.domain is None:
-            state = get_state(silent=True)
-
-            if not state:
-                return None
-            return state.domain
-
-        return self.domain
-
-    def gettext(self, string: str) -> str:
+    def gettext(self, string: str):
         """
         Translates a string with the current
         locale from `quart_babel`.
@@ -61,10 +41,10 @@ class Translations:
         Arguments:
             string: The string to translate.
         """
-        trans = self._get_domain()
-        return string if trans is None else trans.gettext(string)
+        domain = self._get_translations()
+        return string if domain is None else domain.gettext(string)
 
-    def ngettext(self, singular: str, plural: str, num: Number) -> str:
+    def ngettext(self, singular: str, plural: str, num: Number):
         """
         Translates a string with the current locale and passes in the
         given keyword arguments as mapping to a string formatting string.
@@ -77,11 +57,11 @@ class Translations:
             plural: the plural string of the text.
             num: The number parameter.
         """
-        trans = self._get_domain()
+        domain = self._get_translations()
 
-        if trans is None:
+        if domain is None:
             return singular if num == 1 else plural
 
-        return trans.ngettext(singular, plural, num)
+        return domain.ngettext(singular, plural, num)
 
 translations = Translations()
