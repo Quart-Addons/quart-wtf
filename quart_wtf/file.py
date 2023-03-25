@@ -11,8 +11,6 @@ from wtforms.validators import DataRequired
 from wtforms.validators import StopValidation
 from wtforms.validators import ValidationError
 
-from .typing import UploadSet
-
 class FileField(_FileField):
     """Werkzeug-aware subclass of :class:`wtforms.fields.FileField`."""
 
@@ -55,7 +53,7 @@ class FileAllowed:
     You can also use the synonym ``file_allowed``.
     """
 
-    def __init__(self, upload_set: UploadSet, message=None):
+    def __init__(self, upload_set, message=None):
         self.upload_set = upload_set
         self.message = message
 
@@ -115,6 +113,5 @@ class FileSize:
                     f"File must be between {self.min_size} and {self.max_size} bytes."
                 )
             )
-
 
 file_size = FileSize
