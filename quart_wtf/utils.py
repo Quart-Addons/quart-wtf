@@ -55,7 +55,7 @@ async def _get_formdata() -> FormData | None:
     return None
 
 def _get_config(
-    value: t.Any | None,
+    value: t.Any,
     config_name: str,
     default: t.Any | None = None,
     required: bool = True,
@@ -97,21 +97,21 @@ def generate_csrf(
         Default is ``WTF_CSRF_FIELD_NAME`` or ``'csrf_token'``.
     """
     secret_key = _get_config(
-        value=secret_key,
-        config_name="WTF_CSRF_SECRET_KEY",
-        default=current_app.secret_key,
+        secret_key,
+        "WTF_CSRF_SECRET_KEY",
+        current_app.secret_key,
         message=SECRET_KEY_REQUIRED
     )
 
     field_name = _get_config(
-        value=token_key,
-        config_name="WTF_CSRF_FIELD_NAME",
-        default="csrf_token",
+        token_key,
+        "WTF_CSRF_FIELD_NAME",
+        "csrf_token",
         message=FIELD_NAME_REQUIRED
     )
 
     if field_name not in g:
-        serial = URLSafeTimedSerializer(secret_key, salt="wtf-csrf_token")
+        serial = URLSafeTimedSerializer(secret_key, salt="wtf-csrf-token")
 
         if field_name not in session:
             session[field_name] = hashlib.sha1(os.urandom(64)).hexdigest()
@@ -148,23 +148,23 @@ def validate_csrf(
         returning ``True`` or ``False``.
     """
     secret_key = _get_config(
-        value=secret_key,
-        config_name="WTF_CSRF_SECRET_KEY",
-        default=current_app.secret_key,
+        secret_key,
+        "WTF_CSRF_SECRET_KEY",
+        current_app.secret_key,
         message=SECRET_KEY_REQUIRED
     )
 
     field_name = _get_config(
-        value=token_key,
-        config_name="WTF_CSRF_FIELD_NAME",
-        default="csrf_token",
+        token_key,
+        "WTF_CSRF_FIELD_NAME",
+        "csrf_token",
         message=FIELD_NAME_REQUIRED
     )
 
     time_limit = _get_config(
-        value=time_limit,
-        config_name="WTF_CSRF_TIME_LIMIT",
-        default=3600,
+        time_limit,
+        "WTF_CSRF_TIME_LIMIT",
+        3600,
         required=False
     )
 
