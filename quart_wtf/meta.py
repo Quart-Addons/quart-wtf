@@ -17,6 +17,7 @@ from .const import (
     DEFAULT_CSRF_TIME_LIMIT
     )
 
+from .typing import FormData
 from .utils import logger, generate_csrf, validate_csrf
 
 try:
@@ -90,6 +91,12 @@ class QuartFormMeta(DefaultMeta):
         CSRF time limit.
         """
         return current_app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
+
+    def wrap_formdata(self, form, formdata: FormData | None) -> FormData | None:
+        """
+        Overload method. Just returns the formdata from the create_form class.
+        """
+        return formdata
 
     def get_translations(self, form):
         """
