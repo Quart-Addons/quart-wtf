@@ -5,26 +5,29 @@ Translation support for Quart WTF.
 """
 from numbers import Number
 
+from babel import support
 from quart import request
-from quart_babel import Domain
+from quart_babel import get_locale
+from quart_babel.utils import get_state
+from wtforms.i18n import messages_path
 
-__all__ = ["Translations", "translations"]
-
-def _get_domain() -> Domain | None:
-    """
-    Returns the correct Babel domain object
-    for WTForms.
-    """
+def _get_translations() -> support.NullTranslations | None:
     if not request:
         return None
 
-    domain = getattr(request, "wtforms_translations", None)
+    if not get_state(silent=True):
+        # quart-babel not installed
+        return None
 
-    if domain is None:
-        domain = Domain(domain="wtforms")
-        request.wtforms_translations = domain
+    support_translations = getattr(request, "wtforms_translations", None)
 
-    return domain
+    if support_translations is None:
+        support_translations = support.Translations.load(
+            messages_path(), [get_locale()], domain="wtforms"
+        )
+        request.wtforms_translations = support_translations
+
+    return support_translations
 
 class Translations:
     """
@@ -35,8 +38,8 @@ class Translations:
         Translates a string with the current
         locale from `quart_babel`.
         """
-        domain = _get_domain()
-        return string if domain is None else domain.gettext(string)
+        trans = _get_translations()
+        return string if trans is None else trans.ugettext(string)
 
     def ngettext(self, singular: str, plural: str, num: Number) -> str:
         """
@@ -46,11 +49,11 @@ class Translations:
         plural forms of the message.  It is available in the format string
         as ``%(num)d`` or ``%(num)s``.
         """
-        domain = _get_domain()
+        trans = _get_translations()
 
-        if domain is None:
+        if trans is None:
             return singular if num == 1 else plural
 
-        return domain.ngettext(singular, plural, num)
+        return trans.ungettext(singular, plural, num)
 
 translations = Translations()
