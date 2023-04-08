@@ -7,28 +7,24 @@ from numbers import Number
 
 from quart import request
 from quart_babel import Domain
-from quart_babel.utils import get_state
 
-def _get_translations() -> Domain | None:
+__all__ = ["Translations", "translations"]
+
+def _get_domain() -> Domain | None:
     """
     Returns the correct Babel domain object
     for WTForms.
     """
-    state = get_state(silent=True)
-
-    if not state:
-        return None
-
     if not request:
         return None
 
-    translations = getattr(request, "wtforms_translations", None)
+    domain = getattr(request, "wtforms_translations", None)
 
-    if translations is None:
-        translations = Domain(domain="wtforms")
-        request.wtforms_translations = translations
+    if domain is None:
+        domain = Domain(domain="wtforms")
+        request.wtforms_translations = domain
 
-    return translations
+    return domain
 
 class Translations:
     """
@@ -39,7 +35,7 @@ class Translations:
         Translates a string with the current
         locale from `quart_babel`.
         """
-        domain = _get_translations()
+        domain = _get_domain()
         return string if domain is None else domain.gettext(string)
 
     def ngettext(self, singular: str, plural: str, num: Number) -> str:
@@ -50,7 +46,7 @@ class Translations:
         plural forms of the message.  It is available in the format string
         as ``%(num)d`` or ``%(num)s``.
         """
-        domain = _get_translations()
+        domain = _get_domain()
 
         if domain is None:
             return singular if num == 1 else plural
