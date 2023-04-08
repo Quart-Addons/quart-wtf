@@ -90,7 +90,7 @@ class CSRFProtect:
             if not app.config["WTF_CSRF_CHECK_DEFAULT"]:
                 return
 
-            if not request.method not in app.config["WTF_CSRF_METHODS"]:
+            if request.method not in app.config["WTF_CSRF_METHODS"]:
                 return
 
             if not request.endpoint:
@@ -152,7 +152,7 @@ class CSRFProtect:
             validate_csrf(await self._get_csrf_token())
         except ValidationError as error:
             logger.info(error.args[0])
-            self._error_response(REFERRER_HOST)
+            self._error_response(error.args[0])
 
         if request.is_secure and current_app.config["WTF_CSRF_SSL_STRICT"]:
             if not request.referrer:
@@ -163,7 +163,7 @@ class CSRFProtect:
             if not same_orgin(request.referrer, good_referrer):
                 self._error_response(REFERRER_HOST)
 
-        g.csrf_valid = True
+        g.csrf_valid = True # Mark this request as CSRF valid.
 
     def exempt(self, view: ViewsType) -> ViewsType:
         """
