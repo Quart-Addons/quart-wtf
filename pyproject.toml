@@ -21,6 +21,10 @@ pydata-sphinx-theme = "^0.13.3"
 quart-babel = "^1.0.1"
 quart-uploads = "^0.0.1"
 babel = "^2.12.1"
+pytz = "^2023.3"
+
+
+[tool.poetry.group.dec.dependencies]
 
 [build-system]
 requires = ["poetry-core"]

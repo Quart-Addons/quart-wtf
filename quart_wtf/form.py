@@ -146,7 +146,7 @@ class QuartForm(Form):
 
     async def validate(self, extra_validators: t.Dict | None = None) -> bool:
         """
-        Overload :meth:`validate` to handle custom async validators.
+        Async Overload :meth:`validate` to handle custom async validators.
         """
         if extra_validators is not None:
             extra = extra_validators.copy()
