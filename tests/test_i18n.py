@@ -42,12 +42,27 @@ async def test_no_extension(app: Quart, client: TestClientProtocol) -> None:
     await client.post("/", headers={"Accept-Language": "zh-CN,zh;q=0.8"})
 
 @pytest.mark.asyncio
-async def test_outside_request():
+async def test_i18n(app: Quart, client: TestClientProtocol) -> None:
     """
-    Test when there is no request.
+    Test i18n support for Quart_WTF.
     """
-    pytest.importorskip("babel")
-    from quart_wtf.i18n import translations
+    from quart_babel import Babel
 
-    s = "This field is requred."
-    assert translations.gettext(s) == s
+    Babel(app)
+
+    @app.route("/", methods=["POST"])
+    async def index() -> None:
+        form = await NameForm.create_form()
+        await form.validate()
+
+        if not app.config.get("WTF_I18N_ENABLED", True):
+            assert form.name.errors[0] == "This field is required."
+        elif not form.name.data:
+            assert form.name.errors[0] == "该字段是必填字段。"
+        else:
+            assert form.name.errors[0] == "字段长度必须至少 8 个字符。"
+
+    await client.post("/", headers={"Accept-Language": "zh-CN,zh;q=0.8"})
+    await client.post("/", headers={"Accept-Language": "zh"}, data={"name": "short"})
+    app.config["WTF_I18N_ENABLED"] = False
+    await client.post("/", headers={"Accept-Language": "zh"})
