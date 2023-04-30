@@ -16,7 +16,7 @@ def _get_translations() -> support.NullTranslations | None:
         return None
 
     if not get_state(silent=True):
-        # quart-babel not installed
+        # quart-babel not configured.
         return None
 
     support_translations = getattr(request, "wtforms_translations", None)
