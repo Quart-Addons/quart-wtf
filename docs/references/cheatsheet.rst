@@ -1,5 +1,0 @@
-.. _cheatsheet:
-
-==========
-Cheatsheet
-==========

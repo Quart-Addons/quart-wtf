@@ -5,9 +5,11 @@ References
 ==========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
 
    api/index.rst
-   cheatsheet.rst
+   cheatsheets/index.rst
+   changelog.rst
+   contributing.rst
    logo.rst
