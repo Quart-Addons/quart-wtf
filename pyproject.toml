@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "quart-wtf"
+name = "quart-wtforms"
 version = "1.0.0"
 description = "Simple Integration of Quart and WTForms."
 authors = ["Chris Rood <quart.addons@gmail.com>"]

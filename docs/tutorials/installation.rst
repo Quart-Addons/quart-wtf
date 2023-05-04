@@ -10,7 +10,7 @@ package manager.
 
 .. code-block:: console
 
-    pip install quart-wtf
+    pip install quart-wtforms
 
 .. note::
     If you do not have Python 3.7 or better an error message ``Python 3.7
