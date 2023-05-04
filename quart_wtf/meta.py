@@ -3,7 +3,7 @@ quart_wtf.meta
 
 Defines the meta & CSRF form classes.
 """
-import typing as t
+from typing import Any
 
 from quart import current_app, g, session
 from werkzeug.utils import cached_property
@@ -17,7 +17,7 @@ from .const import (
     DEFAULT_CSRF_TIME_LIMIT
     )
 
-from .typing import FormData
+from .typing import TranslationsTypes
 from .utils import logger, generate_csrf, validate_csrf
 
 try:
@@ -72,7 +72,7 @@ class QuartFormMeta(DefaultMeta):
         return current_app.config.get("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
 
     @cached_property
-    def csrf_secret(self) -> t.Any:
+    def csrf_secret(self) -> Any:
         """
         CSRF secret key.
         """
@@ -92,15 +92,11 @@ class QuartFormMeta(DefaultMeta):
         """
         return current_app.config.get("WTF_CSRF_TIME_LIMIT", DEFAULT_CSRF_TIME_LIMIT)
 
-    def wrap_formdata(self, form, formdata: FormData | None) -> FormData | None:
+    def get_translations(self, form) -> TranslationsTypes:
         """
-        Overload method. Just returns the formdata from the create_form class.
-        """
-        return formdata
-
-    def get_translations(self, form):
-        """
-        Gets translations for the form.
+        Gets translations for the form. If the configuration
+        variable 'WTF_I18N_ENABLED' is ``False`` will use 
+        `DefaultMeta.get_translations`.
         """
         if not current_app.config.get("WTF_I18N_ENABLED", True):
             return super().get_translations(form)

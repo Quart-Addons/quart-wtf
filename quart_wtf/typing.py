@@ -1,7 +1,9 @@
 """
 quart_wtf.typing
 """
-import typing as t
+from typing import Any, Awaitable, Callable, Union
+from gettext import GNUTranslations
+from numbers import Number
 
 from quart import Blueprint
 
@@ -11,6 +13,18 @@ from werkzeug.datastructures import (
     MultiDict
 )
 
-FormData = t.Union[CombinedMultiDict, ImmutableDict, MultiDict]
+FormData = Union[CombinedMultiDict, ImmutableDict, MultiDict]
 
-ViewsType = t.Union[str, Blueprint, t.Callable[..., t.Awaitable[t.Any]]]
+ViewsType = Union[str, Blueprint, Callable[..., Awaitable[Any]]]
+
+class Translations:
+    """
+    I18N translations using `quart_babel`.
+    """
+    def gettext(self, string: str) -> str:
+        ...
+
+    def ngettext(self, singular: str, plural: str, num: Number) -> str:
+        ...
+
+TranslationsTypes = Union[GNUTranslations, Translations, None]
