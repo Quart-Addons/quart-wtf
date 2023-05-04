@@ -6,6 +6,6 @@ Simple integration of Quart and WTForms. Including CSRF and file uploading.
 
 # Documentation
 
-The for Quart-Babel and is available [here][docs].
+The documentation for Quart-WTF is available [here][docs].
 
 [docs]: https://quart-wtf.readthedocs.io
