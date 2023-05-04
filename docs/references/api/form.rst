@@ -12,10 +12,15 @@ Form
 .. autoclass:: QuartForm
     :members:
 
+.. module:: quart_wtf.meta
+
+.. autoclass:: QuartFormMeta
+    :members:
+
 Fields
 ------
 
-.. module:: quart_wtf.file 
+.. module:: quart_wtf
 
 .. autoclass:: FileField
 

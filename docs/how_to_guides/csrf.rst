@@ -91,7 +91,8 @@ Customize the error response
 When CSRF validation fails, it will raise a :class:`CSRFError`.
 By default this returns a response with the failure reason and a 400 code.
 You can customize the error response using Flask's
-:meth:`~quart.Quart.errorhandler`. ::
+
+.. code-block:: python
 
     from quart_wtf import CSRFError
 

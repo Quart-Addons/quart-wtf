@@ -4,7 +4,7 @@
 CSRF Protection
 ===============
 
-.. module:: quart_wtf.csrf
+.. module:: quart_wtf
 
 .. autoclass:: CSRFProtect
     :members:
@@ -12,7 +12,7 @@ CSRF Protection
 .. autoclass:: CSRFError
     :members:
 
-.. module:: quart_wtf.csrf.utils
+.. module:: quart_wtf.utils
 
 .. autofunction:: generate_csrf
 

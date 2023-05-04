@@ -19,7 +19,7 @@ to your app:
     from wtforms.validators import DataRequired, Email, EqualTo
     from wtforms.widgets import PasswordInput
 
-    class CreateAccountForm(StarletteForm):
+    class CreateAccountForm(QuartForm):
         email = TextField(
             'Email address',
             validators=[
@@ -46,7 +46,7 @@ to your app:
         )
 
 Since the Quart provides awaitable form objects in `request`. You
-will need to use :meth:`~quart_wtf.QuartForm.from_formdata` async class method, which will
+will need to use :meth:`~quart_wtf.QuartForm.create_form` async class method, which will
 get the form objects using default values on GET requests and formdata 
 on POST requests. 
 
@@ -55,7 +55,7 @@ on POST requests.
     async def create_account():
         """GET|POST /create-account: Create account form handler
         """
-        form = await CreateAccountForm.from_formdata()
+        form = await CreateAccountForm.create_form()
         return await render_template('creataccount.html', form=form)
 
 Secure Forms
@@ -68,7 +68,7 @@ If you would like to disable the CSRF protection. Then you can pass:
 
 .. code-block:: python
 
-    form = await QuartForm.from_formdata(meta={'csrf': False})
+    form = await QuartForm.create_form(meta={'csrf': False})
 
 You can also disable it globally. Though you shouldn't with the
 configuration.
@@ -103,7 +103,7 @@ field. It will check that the file is a non-empty instance of
 
     @app.route('/upload', methods=['GET', 'POST'])
     async async def upload():
-        form = await PhotoForm().from_formdata()
+        form = await PhotoForm().create_form()
 
         if await form.validate_on_submit():
             f = form.photo.data
@@ -130,7 +130,7 @@ be combined with ``request.files`` for the form to see the file data:
 
 .. code-block:: python 
 
-    form = await PhotoForm().from_formdata()
+    form = await PhotoForm().create_form()
     
     # is equivalent to:
 
@@ -157,7 +157,7 @@ Note that validation is asynchronous to handle async field validators (see below
         """GET|POST /create-account: Create account form handler
         """
         # initialize form
-        form = await CreateAccountForm.from_formdata(request)
+        form = await CreateAccountForm.create_form()
 
         # validate form
         if await form.validate_on_submit():

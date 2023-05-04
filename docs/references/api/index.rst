@@ -7,5 +7,5 @@ API Reference
 .. toctree::
    :maxdepth: 1 
    
-   form.rst 
+   form.rst
    csrf.rst
