@@ -1,0 +1,4 @@
+importlib_metadata==4.11.3
+sphinx >= 3.4, !=6.*
+pydata-sphinx-theme 
+sphinxcontrib-napoleon 
