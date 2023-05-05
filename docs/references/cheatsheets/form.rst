@@ -70,6 +70,7 @@ Calling in Routes:
 ------------------
 
 .. code-block:: python
+    
     @app.route('/create-account', methods=['GET', 'POST'])
     async def create_account():
         """GET|POST /create-account: Create account form handler
