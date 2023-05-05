@@ -7,7 +7,7 @@ Configuration
 Configuration Values
 --------------------
 
-. list-table:: Configuration Variables
+.. list-table:: Configuration Variables
     :widths: auto 
     :header-rows: 1
 

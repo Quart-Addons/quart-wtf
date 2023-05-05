@@ -55,4 +55,4 @@ Reference
 .. toctree::
    :maxdepth: 2
 
-   reference/index.rst
+   references/index.rst
