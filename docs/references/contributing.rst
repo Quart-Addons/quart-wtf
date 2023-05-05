@@ -12,7 +12,7 @@ Your contribution would be greatly appreciated!
 Developing Locally:
 -------------------
 
-.. image:: ../_static/vscode-docker.png
+.. image:: ../_static/vscode_docker.png
    :width: 350px
    :alt: VS Code + Docker
    :align: center
