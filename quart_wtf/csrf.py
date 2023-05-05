@@ -4,7 +4,7 @@ quart_wtf.csrf
 The CSRF extension for Quart WTF.
 """
 from __future__ import annotations
-import typing as t
+from typing import Any
 
 from quart import (
     Quart,
@@ -51,7 +51,6 @@ class CSRFProtect:
         Initialize the `CSRFProtect` class.
 
         Arguments:
-        ----------
             app: The `Quart` application.
         """
         self._exempt_views = set()
@@ -66,7 +65,6 @@ class CSRFProtect:
         the `Quart` app.
 
         Arguments:
-        ----------
             app: The `Quart` application.
         """
         app.config.setdefault("WTF_CSRF_ENABLED", DEFAULT_ENABLED)
@@ -107,7 +105,7 @@ class CSRFProtect:
 
             await self.protect()
 
-    async def _get_csrf_token(self) -> t.Any | None:
+    async def _get_csrf_token(self) -> Any | None:
         """
         Get the CSRF token.
         """
@@ -176,6 +174,9 @@ class CSRFProtect:
         ::
             bp = Blueprint(...)
             csrf.exempt(bp)
+        
+        Argument:
+            view: The view function or a `quart.Blueprint` instance.
         """
         if isinstance(view, Blueprint):
             self._exempt_blueprints.add(view.name)

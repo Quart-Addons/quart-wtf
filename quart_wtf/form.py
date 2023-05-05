@@ -5,7 +5,7 @@ Quart WTF Form class.
 """
 from __future__ import annotations
 import asyncio
-import typing as t
+from typing import Any, Coroutine, Dict
 
 from markupsafe import Markup
 from wtforms import Field, Form, ValidationError
@@ -28,17 +28,16 @@ class QuartForm(Form):
     def __init__(
         self,
         formdata: FormData | None = None,
-        obj: t.Any | None = None,
+        obj: Any | None = None,
         prefix: str = "",
-        data: t.Dict | None = None,
-        meta: t. Dict | None =None,
+        data: Dict | None = None,
+        meta: Dict | None =None,
         **kwargs
         ) -> None:
         """
         Initialize ``QuartForm`` class.
 
         Arguments:
-        ----------
             formdata: Input data coming from the client, usually
             ``request.form`` or equivalent. Should provide a "multi
             dict" interface to get a list of values for a given key.
@@ -76,10 +75,10 @@ class QuartForm(Form):
     async def create_form(
         cls,
         formdata: object | FormData = _Auto,
-        obj: t.Any | None = None,
+        obj: Any | None = None,
         prefix: str = "",
-        data: t.Dict | None = None,
-        meta: t. Dict | None =None,
+        data: Dict | None = None,
+        meta: Dict | None =None,
         **kwargs
         ) -> QuartForm:
         """
@@ -94,7 +93,6 @@ class QuartForm(Form):
         async manner.
 
         Arguments:
-        ----------
             formdata: Input data coming from the client, usually
             ``request.form`` or equivalent. Should provide a "multi
             dict" interface to get a list of values for a given key.
@@ -133,7 +131,7 @@ class QuartForm(Form):
 
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
-    async def _validate_async(self, validator: t.Coroutine, field: Field) -> bool:
+    async def _validate_async(self, validator: Coroutine, field: Field) -> bool:
         """
         Execute async validators.
         """
@@ -144,9 +142,12 @@ class QuartForm(Form):
             return False
         return True
 
-    async def validate(self, extra_validators: t.Dict | None = None) -> bool:
+    async def validate(self, extra_validators: Dict | None = None) -> bool:
         """
         Async Overload :meth:`validate` to handle custom async validators.
+
+        Arguments:
+            extra_validators: Extra form validators.
         """
         if extra_validators is not None:
             extra = extra_validators.copy()
@@ -189,11 +190,14 @@ class QuartForm(Form):
         """
         return _is_submitted()
 
-    async def validate_on_submit(self, extra_validators: t.Dict | None = None) -> bool:
+    async def validate_on_submit(self, extra_validators: Dict | None = None) -> bool:
         """
         Call :meth:`validate` only if the form is submitted.
         This is a shortcut for ``QuartForm.is_submitted and 
         ``QuartForm.validate()``.
+
+        Arguments:
+            extra_validators: Extra form validators.
         """
         return self.is_submitted and await self.validate(extra_validators=extra_validators)
 
@@ -205,6 +209,9 @@ class QuartForm(Form):
         If ``fields`` are given, only render the given fields that
         are hidden.  If a string is passed, render the field with that
         name if it exists.
+
+        Argument:
+            fields: Form fields.
         """
         def hidden_fields(fields):
             for field in fields:

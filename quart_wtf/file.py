@@ -37,7 +37,6 @@ class FileRequired(DataRequired):
     You can also use the synonym ``file_required``.
     
     Argument:
-    ---------
         message (``str``): Error message.
     """
     def __call__(self, form, field) -> None:
@@ -56,7 +55,6 @@ class FileAllowed:
     You can also use the synonym ``file_allowed``.
 
     Argument:
-    ---------
         upload_set: A list of extensions or an :class:`~quart_uploads.UploadSet`
     """
     def __init__(self, upload_set, message: str | None = None) -> None:
@@ -96,7 +94,6 @@ class FileSize:
     You can also use the synonym ``file_size``.
 
     Arguments:
-    ----------
         min_size: minimum allowed file size (in bytes). Defaults to 0 bytes.
         max_size: maximum allowed file size (in bytes).
     """
