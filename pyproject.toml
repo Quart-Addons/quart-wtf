@@ -28,7 +28,7 @@ documentation = "https://quart-wtf.readthedocs.io/en/latest/"
 packages = [{include = "quart_wtf"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.8"
 quart = "^0.19"
 WTForms = ">3.0"
 
