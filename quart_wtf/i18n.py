@@ -3,13 +3,12 @@ quart_wtf.i18n
 
 Translation support for Quart WTF.
 """
-from numbers import Number
-
 from babel import support
 from quart import request
-from quart_babel import get_locale
-from quart_babel.utils import get_state
-from wtforms.i18n import messages_path
+from quart_babel import get_locale  # type: ignore
+from quart_babel.utils import get_state  # type: ignore
+from wtforms.i18n import messages_path  # type: ignore
+
 
 def _get_translations() -> support.NullTranslations | None:
     if not request:
@@ -25,9 +24,10 @@ def _get_translations() -> support.NullTranslations | None:
         support_translations = support.Translations.load(
             messages_path(), [get_locale()], domain="wtforms"
         )
-        request.wtforms_translations = support_translations
+        request.wtforms_translations = support_translations  # type: ignore
 
     return support_translations
+
 
 class Translations:
     """
@@ -41,7 +41,7 @@ class Translations:
         trans = _get_translations()
         return string if trans is None else trans.ugettext(string)
 
-    def ngettext(self, singular: str, plural: str, num: Number) -> str:
+    def ngettext(self, singular: str, plural: str, num: int) -> str:
         """
         Translates a string with the current locale and passes in the
         given keyword arguments as mapping to a string formatting string.
@@ -55,5 +55,6 @@ class Translations:
             return singular if num == 1 else plural
 
         return trans.ungettext(singular, plural, num)
+
 
 translations = Translations()

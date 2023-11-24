@@ -5,11 +5,11 @@ Quart WTF Form class.
 """
 from __future__ import annotations
 import asyncio
-from typing import Any, Coroutine, Dict
+from typing import Any, Awaitable, Callable, Dict
 
 from markupsafe import Markup
-from wtforms import Field, Form, ValidationError
-from wtforms.widgets import HiddenInput
+from wtforms import Field, Form, ValidationError  # type: ignore
+from wtforms.widgets import HiddenInput  # type: ignore
 
 from .meta import QuartFormMeta
 from .typing import FormData
@@ -17,27 +17,14 @@ from .utils import _is_submitted, _get_formdata
 
 _Auto = object()
 
-class QuartForm(Form):
+
+class QuartForm(Form):  # type: ignore
     """
     Quart specific subclass of WTForms :class:`~wtforms.form.Form`.
     To populate from submitted formdata use the ```.create_form``` class
     method to initialize the instance.
-    """
-    Meta = QuartFormMeta
 
-    def __init__(
-        self,
-        formdata: FormData | None = None,
-        obj: Any | None = None,
-        prefix: str = "",
-        data: Dict | None = None,
-        meta: Dict | None =None,
-        **kwargs
-        ) -> None:
-        """
-        Initialize ``QuartForm`` class.
-
-        Arguments:
+    Arguments:
             formdata: Input data coming from the client, usually
             ``request.form`` or equivalent. Should provide a "multi
             dict" interface to get a list of values for a given key.
@@ -57,7 +44,7 @@ class QuartForm(Form):
             has a matching attribute. Only used if ``formdata`` is not
             passed.
 
-            meta: A dict of attributes to override on this form's 
+            meta: A dict of attributes to override on this form's
             :attr:`meta` instance.
 
             extra_filters: A dict mapping field attribute names to
@@ -68,8 +55,8 @@ class QuartForm(Form):
             kwargs: Merged with ``data`` to allow passing existing
             data as parameters. Overwrites any duplicate keys in
             ``data``. Only used if ``formdata`` is not passed.
-        """
-        super().__init__(formdata, obj, prefix, data, meta, **kwargs)
+    """
+    Meta = QuartFormMeta
 
     @classmethod
     async def create_form(
@@ -78,19 +65,19 @@ class QuartForm(Form):
         obj: Any | None = None,
         prefix: str = "",
         data: Dict | None = None,
-        meta: Dict | None =None,
-        **kwargs
-        ) -> QuartForm:
+        meta: Dict | None = None,
+        **kwargs: Dict[str, Any]
+    ) -> QuartForm:
         """
         This creates a new instance of the form and can only be called within
         your applications routes.
 
         This method is primiarly used to intialize the class from submitted
         formdata from ``Quart.request``. If a request is a POST, PUT, PATCH,
-        or DELETE method. The form will be intialized using the request. Otherwise
-        it will initialized using the defaults. This is required since ``request.files``,
-        ``request.form``, and ``request.json`` are coroutines and need to be called in an
-        async manner.
+        or DELETE method. The form will be intialized using the request.
+        Otherwise it will initialized using the defaults. This is required
+        since ``request.files``, ``request.form``, and ``request.json`` are
+        coroutines and need to be called in an async manner.
 
         Arguments:
             formdata: Input data coming from the client, usually
@@ -112,7 +99,7 @@ class QuartForm(Form):
             has a matching attribute. Only used if ``formdata`` is not
             passed.
 
-            meta: A dict of attributes to override on this form's 
+            meta: A dict of attributes to override on this form's
             :attr:`meta` instance.
 
             extra_filters: A dict mapping field attribute names to
@@ -131,7 +118,9 @@ class QuartForm(Form):
 
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
-    async def _validate_async(self, validator: Coroutine, field: Field) -> bool:
+    async def _validate_async(
+            self, validator, field
+    ) -> bool:
         """
         Execute async validators.
         """
@@ -142,38 +131,31 @@ class QuartForm(Form):
             return False
         return True
 
-    async def validate(self, extra_validators: Dict | None = None) -> bool:
+    async def validate(self, extra_validators: Dict[str, Any] | None = None) -> bool:
+        # pylint: disable=W0236
         """
         Async Overload :meth:`validate` to handle custom async validators.
 
         Arguments:
             extra_validators: Extra form validators.
         """
-        if extra_validators is not None:
-            extra = extra_validators.copy()
-        else:
-            extra = {}
-
-        async_validators = {}
+        async_validators = dict()
 
         # use extra validators to check for StopValidation errors
         completed = []
-
-        def record_status(form, field):
-            completed.append(field.name)
 
         for name, field, in self._fields.items():
             func = getattr(self.__class__, f"async_validate_{name}", None)
             if func:
                 async_validators[name] = (func, field)
-                extra.setdefault(name, []).append(record_status)
+                completed.append(field.name)
 
         # execute non-async validators
-        success = super().validate(extra_validators=extra)
+        success = super().validate(extra_validators=extra_validators)
 
         # execute async validators
-        tasks = [self._validate_async(*async_validators[name])for name in \
-            completed]
+        tasks = [self._validate_async(*async_validators[name]) for name in
+                 completed]
         async_results = await asyncio.gather(*tasks)
 
         # check results
@@ -190,18 +172,21 @@ class QuartForm(Form):
         """
         return _is_submitted()
 
-    async def validate_on_submit(self, extra_validators: Dict | None = None) -> bool:
+    async def validate_on_submit(
+            self, extra_validators: Dict[str, Any] | None = None
+    ) -> bool:
         """
         Call :meth:`validate` only if the form is submitted.
-        This is a shortcut for ``QuartForm.is_submitted and 
+        This is a shortcut for ``QuartForm.is_submitted and
         ``QuartForm.validate()``.
 
         Arguments:
             extra_validators: Extra form validators.
         """
-        return self.is_submitted and await self.validate(extra_validators=extra_validators)
+        return self.is_submitted and \
+            await self.validate(extra_validators=extra_validators)
 
-    def hidden_tag(self, *fields) -> Markup:
+    def hidden_tag(self, *fields) -> Markup:  # type: ignore
         """
         Render the form's hidden fields in one call.
         A field is considered hidden if it uses the
@@ -213,7 +198,7 @@ class QuartForm(Form):
         Argument:
             fields: Form fields.
         """
-        def hidden_fields(fields):
+        def hidden_fields(fields):  # type: ignore
             for field in fields:
                 if isinstance(field, str):
                     field = getattr(self, field, None)
@@ -223,4 +208,5 @@ class QuartForm(Form):
 
                 yield field
 
-        return Markup("\n".join(str(field) for field in hidden_fields(fields or self)))
+        return Markup("\n".join(str(field) for field
+                                in hidden_fields(fields or self)))

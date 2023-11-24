@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from quart import current_app, g, request, session
 from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
-from wtforms import ValidationError
+from wtforms import ValidationError  # type: ignore
 
 from .const import (
     CSRF_NOT_CONFIGURED,
@@ -31,12 +31,14 @@ from .typing import FormData
 
 logger = logging.getLogger("Quart-WTF")
 
+
 def _is_submitted() -> bool:
     """
     Consider the form submitted if there is an active request and
     the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
     """
     return bool(request) and request.method in SUBMIT_METHODS
+
 
 async def _get_formdata() -> FormData | None:
     """
@@ -50,9 +52,10 @@ async def _get_formdata() -> FormData | None:
     if form:
         return form
     if request.is_json:
-        json = await request.json()
+        json = await request.json
         return ImmutableMultiDict(json)
     return None
+
 
 def _get_config(
     value: t.Any,
@@ -60,7 +63,7 @@ def _get_config(
     default: t.Any | None = None,
     required: bool = True,
     message: str = CSRF_NOT_CONFIGURED
-    ) -> t.Any:
+) -> t.Any:
     """
     Find config value based on provided value, Quart config, and default
     value.
@@ -80,10 +83,11 @@ def _get_config(
 
     return value
 
+
 def generate_csrf(
     secret_key: t.Any | None = None,
     token_key: t.Any | None = None
-    ) -> t.Any:
+) -> t.Any:
     """
     Generate a CSRF token. The token is cached for a request, so multiple
     calls to this function will generate the same token.
@@ -126,12 +130,13 @@ def generate_csrf(
 
     return g.get(field_name)
 
+
 def validate_csrf(
     data: t.Any,
     secret_key: t.Any | None = None,
     time_limit: int | None = None,
     token_key: t.Any | None = None
-    ) -> None:
+) -> None:
     """
     Check if the given data is a valid CSRF token. This compares the given
     signed token to the one stored in the session.
@@ -185,6 +190,7 @@ def validate_csrf(
 
     if not hmac.compare_digest(session[field_name], token):
         raise ValidationError(TOKEN_NO_MATCH)
+
 
 def same_orgin(current_uri: str, compare_uri: str) -> bool:
     """

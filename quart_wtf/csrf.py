@@ -4,7 +4,7 @@ quart_wtf.csrf
 The CSRF extension for Quart WTF.
 """
 from __future__ import annotations
-from typing import Any
+from typing import Any, List
 
 from quart import (
     Quart,
@@ -15,7 +15,7 @@ from quart import (
 )
 
 from werkzeug.exceptions import BadRequest
-from wtforms import ValidationError
+from wtforms import ValidationError  # type: ignore
 
 from .const import (
     DEFAULT_ENABLED,
@@ -32,6 +32,7 @@ from .const import (
 
 from .typing import ViewsType
 from .utils import logger, generate_csrf, validate_csrf, same_orgin
+
 
 class CSRFProtect:
     """
@@ -53,8 +54,8 @@ class CSRFProtect:
         Arguments:
             app: The `Quart` application.
         """
-        self._exempt_views = set()
-        self._exempt_blueprints = set()
+        self._exempt_views: List = list()
+        self._exempt_blueprints: List = list()
 
         if app is not None:
             self.init_app(app)
@@ -81,7 +82,7 @@ class CSRFProtect:
         app.context_processor(lambda: {"crsf_token": generate_csrf})
 
         @app.before_request
-        async def csrf_protect():
+        async def csrf_protect() -> None:
             if not app.config["WTF_CSRF_ENABLED"]:
                 return
 
@@ -161,7 +162,7 @@ class CSRFProtect:
             if not same_orgin(request.referrer, good_referrer):
                 self._error_response(REFERRER_HOST)
 
-        g.csrf_valid = True # Mark this request as CSRF valid.
+        g.csrf_valid = True  # Mark this request as CSRF valid.
 
     def exempt(self, view: ViewsType) -> ViewsType:
         """
@@ -174,12 +175,12 @@ class CSRFProtect:
         ::
             bp = Blueprint(...)
             csrf.exempt(bp)
-        
+
         Argument:
             view: The view function or a `quart.Blueprint` instance.
         """
         if isinstance(view, Blueprint):
-            self._exempt_blueprints.add(view.name)
+            self._exempt_blueprints.append(view.name)
             return view
 
         if isinstance(view, str):
@@ -187,8 +188,9 @@ class CSRFProtect:
         else:
             view_location = ".".join((view.__module__, view.__name__))
 
-        self._exempt_views.add(view_location)
+        self._exempt_views.append(view_location)
         return view
+
 
 class CSRFError(BadRequest):
     """
