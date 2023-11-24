@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/vscode/devcontainers/python:3.10-bullseye
+FROM mcr.microsoft.com/vscode/devcontainers/python:3.12-bullseye
 
 # Add env variables
 ENV PATH="${PATH}:/root/.poetry/bin"
