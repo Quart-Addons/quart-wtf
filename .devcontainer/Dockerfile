@@ -8,7 +8,3 @@ ENV SHELL /bin/bash
 RUN sudo apt-get update && pip3 install --upgrade pip \
     && pip3 install poetry \
     && poetry config virtualenvs.create false
-
-
-# Expose Port 5000, which is used by Quart. 
-EXPOSE 5000
