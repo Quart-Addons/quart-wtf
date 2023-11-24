@@ -36,7 +36,7 @@ async def test_populate_from_form(app: Quart, client: TestClientProtocol) -> Non
         form = await BasicForm().create_form()
         assert form.name.data == "form"
 
-    await client.post("/", data={"name": "form"})
+    await client.post("/", form={"name": "form"})
 
 @pytest.mark.asyncio
 async def test_populate_from_files(app: Quart, client: TestClientProtocol) -> None:
@@ -47,9 +47,9 @@ async def test_populate_from_files(app: Quart, client: TestClientProtocol) -> No
     async def index():
         form = await BasicForm().create_form()
         assert form.avatar.data is not None
-        assert form.avatar.data.filename == "flask.png"
+        assert form.avatar.data.filename == "quart.png"
 
-    await client.post("/", data={"name": "files", "avatar": (BytesIO(), "flask.png")})
+    await client.post("/", data={"name": "files", "avatar": (BytesIO(), "quart.png")})
 
 @pytest.mark.asyncio
 async def test_populate_from_json(app: Quart, client: TestClientProtocol) -> None:
@@ -61,7 +61,7 @@ async def test_populate_from_json(app: Quart, client: TestClientProtocol) -> Non
         form = await BasicForm().create_form()
         assert form.name.data == "json"
 
-    await client.post("/", data=json.dumps({"name": "json"}))
+    await client.post("/", json=json.dumps({"name": "json"}))
 
 @pytest.mark.asyncio
 async def test_populate_manually(app: Quart, client: TestClientProtocol) -> None:
