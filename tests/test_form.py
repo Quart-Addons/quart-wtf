@@ -7,11 +7,14 @@ import pytest
 from quart import Quart, json, request
 from quart.typing import TestClientProtocol
 
-from wtforms import FileField, HiddenField, IntegerField, StringField
-from wtforms.validators import DataRequired
-from wtforms.widgets import HiddenInput
+from wtforms import (  # type: ignore
+    FileField, HiddenField, IntegerField, StringField
+)
+from wtforms.validators import DataRequired  # type: ignore
+from wtforms.widgets import HiddenInput  # type: ignore
 
 from quart_wtf import QuartForm
+
 
 class BasicForm(QuartForm):
     """
@@ -26,54 +29,69 @@ class BasicForm(QuartForm):
     name = StringField(validators=[DataRequired()])
     avatar = FileField()
 
+
 @pytest.mark.asyncio
-async def test_populate_from_form(app: Quart, client: TestClientProtocol) -> None:
+async def test_populate_from_form(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Populates formdata for the form.
     """
     @app.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         form = await BasicForm().create_form()
         assert form.name.data == "form"
 
     await client.post("/", form={"name": "form"})
 
+
 @pytest.mark.asyncio
-async def test_populate_from_files(app: Quart, client: TestClientProtocol) -> None:
+async def test_populate_from_files(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Populates formdata for the form using files.
     """
     @app.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         form = await BasicForm().create_form()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "quart.png"
 
-    await client.post("/", data={"name": "files", "avatar": (BytesIO(), "quart.png")})
+    await client.post(
+        "/", form={"name": "files", "avatar": (BytesIO(), "quart.png")}
+        )
+
 
 @pytest.mark.asyncio
-async def test_populate_from_json(app: Quart, client: TestClientProtocol) -> None:
+async def test_populate_from_json(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Populates formdata using json.
     """
     @app.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         form = await BasicForm().create_form()
         assert form.name.data == "json"
 
     await client.post("/", json=json.dumps({"name": "json"}))
 
+
 @pytest.mark.asyncio
-async def test_populate_manually(app: Quart, client: TestClientProtocol) -> None:
+async def test_populate_manually(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Manually populates the form.
     """
     @app.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         form = await BasicForm.create_form(fromdata=request.args)
         assert form.name.data == "args"
 
     await client.post("/", query_string={"name": "args"})
+
 
 @pytest.mark.asyncio
 async def test_populate_none(app: Quart, client: TestClientProtocol) -> None:
@@ -81,38 +99,45 @@ async def test_populate_none(app: Quart, client: TestClientProtocol) -> None:
     Manually populates the form with no formdata.
     """
     @app.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         form = BasicForm(formdata=None)
         assert form.name.data is None
 
     await client.post("/", data={"name": "ignore"})
 
+
 @pytest.mark.asyncio
-async def test_validate_on_submit(app: Quart, client: TestClientProtocol) -> None:
+async def test_validate_on_submit(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Tests validate on submit for the form.
     """
     @app.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         form = BasicForm()
-        assert form.is_submitted()
+        assert form.is_submitted
         assert not await form.validate_on_submit()
         assert "name" in form.errors
 
     await client.post("/")
 
+
 @pytest.mark.asyncio
-async def test_no_validate_on_get(app: Quart, client: TestClientProtocol) -> None:
+async def test_no_validate_on_get(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Form not valid on GET requet.
     """
     @app.route("/", methods=["GET", "POST"])
-    async def index():
+    async def index() -> None:
         form = BasicForm()
         assert not await form.validate_on_submit()
         assert "name" not in form.errors
 
     await client.get("/")
+
 
 @pytest.mark.asyncio
 async def test_hidden_tag(app: Quart) -> None:

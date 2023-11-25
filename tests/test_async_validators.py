@@ -23,9 +23,9 @@ class FormWithAsyncValidators(QuartForm):
         Async validator for field1.
         """
         # test await
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(.01)
 
-        # raise exception
+        # raise error
         if not field.data == 'value1':
             raise ValidationError('Field value is not correct.')
 
@@ -34,9 +34,9 @@ class FormWithAsyncValidators(QuartForm):
         Async validator for field2.
         """
         # test await
-        await asyncio.sleep(1.2)
+        await asyncio.sleep(.02)
 
-        # raise exception
+        # raise error
         if not field.data == 'value2':
             raise ValidationError('Field value is not correct.')
 
@@ -53,7 +53,7 @@ class FormWithAsyncException(QuartForm):
         """
         # pylint: disable=W0613
         await asyncio.sleep(.01)
-        raise Exception('test')
+        raise Exception('test')  # pylint: disable=W0719
 
 
 @pytest.mark.asyncio
@@ -152,7 +152,7 @@ async def test_async_validator_exception(
         form = await FormWithAsyncException().create_form()
         try:
             await form.validate()
-        except Exception as err:
+        except Exception as err:   # pylint: disable=W0718
             assert err.args[0] == 'test'
         else:
             assert False

@@ -1,15 +1,18 @@
 """
 Tests CSRF with Quart-WTF.
 """
+from typing import Any
+
 import pytest
 from quart import Quart, g, request, session
 from quart.typing import TestClientProtocol
-from wtforms import ValidationError
+from wtforms import ValidationError  # type: ignore
 
 from quart_wtf import QuartForm
 from quart_wtf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
-                            TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
+                             TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
 from quart_wtf.utils import generate_csrf, validate_csrf, logger
+
 
 @pytest.mark.asyncio
 async def test_csrf_requires_secret_key(app: Quart) -> None:
@@ -29,6 +32,7 @@ async def test_csrf_requires_secret_key(app: Quart) -> None:
         # use direct argument
         generate_csrf(secret_key="direct")
 
+
 @pytest.mark.asyncio
 async def test_token_stored_by_generate(app: Quart) -> None:
     """
@@ -38,6 +42,7 @@ async def test_token_stored_by_generate(app: Quart) -> None:
         generate_csrf()
         assert "csrf_token" in session
         assert "csrf_token" in g
+
 
 @pytest.mark.asyncio
 async def test_custom_token_key(app: Quart) -> None:
@@ -49,6 +54,7 @@ async def test_custom_token_key(app: Quart) -> None:
         assert "oauth_token" in session
         assert "oauth_token" in g
 
+
 @pytest.mark.asyncio
 async def test_token_cached(app: Quart) -> None:
     """
@@ -57,6 +63,7 @@ async def test_token_cached(app: Quart) -> None:
     async with app.test_request_context("/"):
         assert generate_csrf() == generate_csrf()
 
+
 @pytest.mark.asyncio
 async def test_validate(app: Quart) -> None:
     """
@@ -64,6 +71,7 @@ async def test_validate(app: Quart) -> None:
     """
     async with app.test_request_context("/"):
         validate_csrf(generate_csrf())
+
 
 @pytest.mark.asyncio
 async def test_validation_errors(app: Quart) -> None:
@@ -78,7 +86,8 @@ async def test_validation_errors(app: Quart) -> None:
         assert str(error.value) == SESSION_TOKEN_MISSING
 
         token = generate_csrf()
-        error = pytest.raises(ValidationError, validate_csrf, token, time_limit=-1)
+        error = pytest.raises(ValidationError, validate_csrf,
+                              token, time_limit=-1)
         assert str(error.value) == TOKEN_EXPIRED
 
         error = pytest.raises(ValidationError, validate_csrf, "invalid")
@@ -88,13 +97,14 @@ async def test_validation_errors(app: Quart) -> None:
         error = pytest.raises(ValidationError, validate_csrf, other_token)
         assert str(error.value) == TOKEN_NO_MATCH
 
+
 @pytest.mark.asyncio
 async def test_form_csrf(app: Quart, client: TestClientProtocol) -> None:
     """
     Test form CSRF.
     """
     @app.route("/", methods=["GET", "POST"])
-    async def index():
+    async def index() -> Any:
         form = await QuartForm.create_form()
 
         if request.method == "POST":
@@ -112,20 +122,24 @@ async def test_form_csrf(app: Quart, client: TestClientProtocol) -> None:
         assert await response.get_data(as_text=True) == g.csrf_token
 
         response = await client.post("/")
-        assert  await response.get_data(as_text=True) == "The CSRF token is missing."
+        assert await response.get_data(as_text=True) == \
+            "The CSRF token is missing."
 
         response = await client.post("/", form={"csrf_token": g.csrf_token})
         assert await response.get_data(as_text=True) == "good"
 
+
 @pytest.mark.asyncio
-async def test_validate_error_logged(app: Quart, monkeypatch) -> None:
+async def test_validate_error_logged(
+    app: Quart, monkeypatch: Any
+) -> None:
     """
     Test validation error is logged.
     """
     async with app.test_request_context("/"):
         messages = []
 
-        def assert_info(message):
+        def assert_info(message):  # type: ignore
             messages.append(message)
 
         monkeypatch.setattr(logger, "info", assert_info)
