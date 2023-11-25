@@ -5,10 +5,10 @@ Quart WTF Form class.
 """
 from __future__ import annotations
 import asyncio
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Callable, Dict
 
 from markupsafe import Markup
-from wtforms import Field, Form, ValidationError  # type: ignore
+from wtforms import Form, Field, ValidationError  # type: ignore
 from wtforms.widgets import HiddenInput  # type: ignore
 
 from .meta import QuartFormMeta
@@ -119,7 +119,7 @@ class QuartForm(Form):  # type: ignore
         return cls(formdata, obj, prefix, data, meta, **kwargs)
 
     async def _validate_async(
-            self, validator, field
+            self, validator: Callable, field: Field
     ) -> bool:
         """
         Execute async validators.
@@ -131,7 +131,9 @@ class QuartForm(Form):  # type: ignore
             return False
         return True
 
-    async def validate(self, extra_validators: Dict[str, Any] | None = None) -> bool:
+    async def validate(
+            self, extra_validators: Dict[str, Any] | None = None
+    ) -> bool:
         # pylint: disable=W0236
         """
         Async Overload :meth:`validate` to handle custom async validators.
@@ -139,28 +141,27 @@ class QuartForm(Form):  # type: ignore
         Arguments:
             extra_validators: Extra form validators.
         """
-        async_validators = dict()
+        async_validators = {}
+        async_found = []
 
-        # use extra validators to check for StopValidation errors
-        completed = []
-
-        for name, field, in self._fields.items():
-            func = getattr(self.__class__, f"async_validate_{name}", None)
+        # Check for inline async validators
+        for name, field in self._fields.items():
+            func = getattr(self.__class__, f'async_validators_{name}', None)
             if func:
                 async_validators[name] = (func, field)
-                completed.append(field.name)
+                async_found.append(name)
 
         # execute non-async validators
         success = super().validate(extra_validators=extra_validators)
 
         # execute async validators
-        tasks = [self._validate_async(*async_validators[name]) for name in
-                 completed]
-        async_results = await asyncio.gather(*tasks)
+        if async_validators:
+            tasks = [self._validate_async(*async_validators[name]) for
+                     name in async_found]
+            async_results = await asyncio.gather(*tasks)
 
-        # check results
-        if False in async_results:
-            success = False
+            if False in async_results:
+                success = False
 
         return success
 
