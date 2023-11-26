@@ -1,27 +1,31 @@
 """
 Tests the CSRF extension from Quart-WTF.
 """
+from typing import Any, List
 import pytest
-from quart import Quart, Blueprint, g, render_template_string
+from quart import Quart, Blueprint, g, render_template_string, Response
 from quart.typing import TestClientProtocol
 
 from quart_wtf import CSRFError, CSRFProtect, QuartForm
 from quart_wtf.const import REFERRER_HEADER, REFERRER_HOST, TOKEN_MISSING
 from quart_wtf.utils import logger, generate_csrf
 
+# pylint: skip-file
+
+
 @pytest.fixture
-def app(app: Quart) -> Quart:
+def app(app: Quart) -> Quart:  # pylint: disable=W0621
     """
     App fixture for testing the CSRF extension.
     """
     CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
-    async def index():
+    async def index() -> None:
         pass
 
     @app.after_request
-    async def add_csrf_header(response):
+    async def add_csrf_header(response: Response) -> Response:
         response.headers.set("X-CSRF-Token", generate_csrf())
         return response
 
@@ -35,6 +39,7 @@ def csrf(app: Quart) -> CSRFProtect:
     """
     return app.extensions["csrf"]
 
+
 @pytest.mark.asyncio
 async def test_render_token(app: Quart) -> None:
     """
@@ -43,6 +48,7 @@ async def test_render_token(app: Quart) -> None:
     async with app.test_request_context("/"):
         token = generate_csrf()
         assert await render_template_string("{{ csrf_token() }}") == token
+
 
 @pytest.mark.asyncio
 async def test_protect(app: Quart, client: TestClientProtocol) -> None:
@@ -59,13 +65,13 @@ async def test_protect(app: Quart, client: TestClientProtocol) -> None:
     app.config["WTF_CSRF_ENABLED"] = False
     response = await client.post("/")
     data = await response.get_data()
-    assert data == b""
+    assert data == b""  # type: ignore
     app.config["WTF_CSRF_ENABLED"] = True
 
     app.config["WTF_CSRF_CHECK_DEFAULT"] = False
     response = await client.post("/")
     data = await response.get_data()
-    assert data == b""
+    assert data == b""  # type: ignore
     app.config["WTF_CSRF_CHECK_DEFAULT"] = True
 
     response = await client.options("/")
@@ -85,10 +91,13 @@ async def test_protect(app: Quart, client: TestClientProtocol) -> None:
     response = await client.post("/", headers={"X-CSRF-Token": token})
     assert response.status_code == 200
 
+
 @pytest.mark.asyncio
-async def test_same_origin(app: Quart, client: TestClientProtocol) -> None:
+async def test_same_origin(
+    app: Quart, client: TestClientProtocol
+) -> None:  # pylint: disable=W0621
     """
-    Tests same origin. 
+    Tests same origin.
     """
     await app.startup()
     response = await client.get("/")
@@ -132,13 +141,16 @@ async def test_same_origin(app: Quart, client: TestClientProtocol) -> None:
     )
     assert response.status_code == 200
 
+
 @pytest.mark.asyncio
-async def test_form_csrf_short_circuit(app: Quart, client: TestClientProtocol) -> None:
+async def test_form_csrf_short_circuit(
+    app: Quart, client: TestClientProtocol
+) -> None:
     """
     Tests CSRF short circuit.
     """
     @app.route("/skip", methods=["POST"])
-    async def skip():
+    async def skip() -> None:
         assert g.get("csrf_valid")
         # don't pass the token, then validate the form
         # this would fail if CSRFProtect didn't run
@@ -150,14 +162,17 @@ async def test_form_csrf_short_circuit(app: Quart, client: TestClientProtocol) -
     response = await client.post("/skip", headers={"X-CSRF-Token": token})
     assert response.status_code == 200
 
+
 @pytest.mark.asyncio
-async def test_exempt_view(app: Quart, csrf: CSRFProtect, client: TestClientProtocol) -> None:
+async def test_exempt_view(
+    app: Quart, csrf: CSRFProtect, client: TestClientProtocol
+) -> None:
     """
     Test exempt view with CSRF.
     """
     @app.route("/exempt", methods=["POST"])
-    @csrf.exempt
-    async def exempt():
+    @csrf.exempt  # typing: ignore
+    async def exempt() -> None:
         pass
 
     response = await client.post("/exempt")
@@ -167,14 +182,17 @@ async def test_exempt_view(app: Quart, csrf: CSRFProtect, client: TestClientProt
     response = await client.post("/")
     assert response.status_code == 200
 
+
 @pytest.mark.asyncio
-async def test_manual_protect(app: Quart, csrf: CSRFProtect, client: TestClientProtocol) -> None:
+async def test_manual_protect(
+    app: Quart, csrf: CSRFProtect, client: TestClientProtocol
+) -> None:
     """
     Test manual CSRF protection.
     """
     @app.route("/manual", methods=["GET", "POST"])
-    @csrf.exempt
-    async def manual():
+    @csrf.exempt  # typing: ignore
+    async def manual() -> None:
         await csrf.protect()
 
     response = await client.get("/manual")
@@ -183,8 +201,11 @@ async def test_manual_protect(app: Quart, csrf: CSRFProtect, client: TestClientP
     response = await client.post("/manual")
     assert response.status_code == 400
 
+
 @pytest.mark.asyncio
-async def test_exempt_blueprint(app: Quart, csrf: CSRFProtect, client: TestClientProtocol) -> None:
+async def test_exempt_blueprint(
+    app: Quart, csrf: CSRFProtect, client: TestClientProtocol
+) -> None:
     """
     Test exempting a blueprint from CSRF Protection.
     """
@@ -192,37 +213,41 @@ async def test_exempt_blueprint(app: Quart, csrf: CSRFProtect, client: TestClien
     csrf.exempt(bp)
 
     @bp.route("/", methods=["POST"])
-    async def index():
+    async def index() -> None:
         pass
 
     app.register_blueprint(bp)
     response = await client.post("/exempt/")
     assert response.status_code == 200
 
+
 @pytest.mark.asyncio
 async def test_error_handler(app: Quart, client: TestClientProtocol) -> None:
     """
-    Tests error handling. 
+    Tests error handling.
     """
     @app.errorhandler(CSRFError)
-    async def handle_csrf_error(error):
+    async def handle_csrf_error(error: CSRFError) -> str:
         return error.description
 
     response = await client.post("/")
     assert await response.get_data(as_text=True) == TOKEN_MISSING
 
+
 @pytest.mark.asyncio
-async def test_validate_error_logged(client: TestClientProtocol, monkeypatch) -> None:
+async def test_validate_error_logged(
+    client: TestClientProtocol, monkeypatch: Any
+) -> None:
     """
     Tests validation error being logged.
     """
     messages = []
 
-    def assert_info(message):
+    def assert_info(message: List) -> None:
         messages.append(message)
 
     monkeypatch.setattr(logger, "info", assert_info)
 
     await client.post("/")
     assert len(messages) == 1
-    assert messages[0] == "The CSRF token is missing."
+    assert messages[0] == "The CSRF token is missing."  # type: ignore

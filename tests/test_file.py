@@ -163,8 +163,7 @@ async def test_file_size_invalid_file_size_fails_validation(
         with path.open("rb") as file:
             form = UploadForm(file=FileStorage(file))
             assert not await form.validate()
-            assert form.file.errors[0] == \
-                f"File must be between {min_size} and {max_size} bytes."
+            assert form.file.errors[0] == f"File must be between {min_size} and {max_size} bytes."
 
 
 @pytest.mark.asyncio
