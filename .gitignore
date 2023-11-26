@@ -4,3 +4,4 @@ poetry.lock
 docs/_build/
 dist/
 .pytest_cache/
+.mypy_cache/
