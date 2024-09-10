@@ -1,5 +1,5 @@
 """
-Tests CSRF with Quart-WTF.
+tests.test_csrf_form
 """
 from typing import Any
 

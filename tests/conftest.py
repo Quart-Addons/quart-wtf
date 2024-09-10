@@ -1,5 +1,5 @@
 """
-Configures test fixtures.
+tests.conftest
 """
 import pytest
 from quart import Quart as _Quart

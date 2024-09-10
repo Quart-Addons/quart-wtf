@@ -1,5 +1,5 @@
 """
-Tests the Quart-Form form class.
+tests.test_form
 """
 from io import BytesIO
 import pytest

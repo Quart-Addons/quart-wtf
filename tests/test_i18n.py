@@ -1,5 +1,5 @@
 """
-Test i18n support.
+tests.test_i18n
 """
 import pytest
 

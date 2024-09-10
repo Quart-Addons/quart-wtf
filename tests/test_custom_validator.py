@@ -1,5 +1,5 @@
 """
-Tests custom validators with Quart-WTF.
+tests.test_custom_validators
 """
 import pytest
 from quart import Quart

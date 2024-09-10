@@ -1,5 +1,5 @@
 """
-Tests async validators with Quart-WTF.
+tests.test_async_validators
 """
 import asyncio
 import pytest

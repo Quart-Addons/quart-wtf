@@ -1,5 +1,5 @@
 """
-Tests file handing with Quart-WTF.
+tests.test_file
 """
 from typing import Any
 import pytest

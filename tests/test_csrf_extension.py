@@ -1,5 +1,5 @@
 """
-Tests the CSRF extension from Quart-WTF.
+tests.test_csrf_extension
 """
 from typing import Any, List
 import pytest
