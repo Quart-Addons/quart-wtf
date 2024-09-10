@@ -1,7 +1,5 @@
 """
 quart_wtf.meta
-
-Defines the meta & CSRF form classes.
 """
 from typing import Any
 

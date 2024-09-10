@@ -1,7 +1,5 @@
 """
 quart_wtf.utils
-
-Utilites for Quart-WTF.
 """
 import hashlib
 import hmac

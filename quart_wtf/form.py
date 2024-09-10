@@ -1,7 +1,5 @@
 """
 quart_wtf.form
-
-Quart WTF Form class.
 """
 from __future__ import annotations
 import asyncio

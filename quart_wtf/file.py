@@ -1,7 +1,5 @@
 """
 quart_wtf.file
-
-File fields for Quart-WTF.
 """
 from __future__ import annotations
 from collections import abc

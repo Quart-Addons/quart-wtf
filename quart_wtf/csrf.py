@@ -1,7 +1,5 @@
 """
 quart_wtf.csrf
-
-The CSRF extension for Quart WTF.
 """
 from __future__ import annotations
 from typing import Any, List

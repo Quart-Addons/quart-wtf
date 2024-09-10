@@ -1,7 +1,5 @@
 """
 quart_wtf.const
-
-Constant strings for CSRF.
 """
 DEFAULT_ENABLED = True
 

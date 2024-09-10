@@ -1,7 +1,5 @@
 """
 quart_wtf.i18n
-
-Translation support for Quart WTF.
 """
 from babel import support
 from quart import request
