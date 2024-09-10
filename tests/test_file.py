@@ -153,8 +153,9 @@ async def test_file_size_invalid_file_size_fails_validation(
     """
     Tests invalid file size.
     """
-    UploadForm.file.kwargs["validators"] = \
-        [FileSize(min_size=min_size, max_size=max_size)]  # pylint: disable=E1101
+    UploadForm.file.kwargs["validators"] = [
+        FileSize(min_size=min_size, max_size=max_size)
+        ]  # pylint: disable=E1101
 
     async with app.test_request_context("/"):
         path = tmp_path / "test_file_invalid_size.txt"
@@ -163,7 +164,8 @@ async def test_file_size_invalid_file_size_fails_validation(
         with path.open("rb") as file:
             form = UploadForm(file=FileStorage(file))
             assert not await form.validate()
-            assert form.file.errors[0] == f"File must be between {min_size} and {max_size} bytes."
+            assert form.file.errors[0] == \
+                f"File must be between {min_size} and {max_size} bytes."
 
 
 @pytest.mark.asyncio
