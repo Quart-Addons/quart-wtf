@@ -22,7 +22,7 @@ Configuration Values
     * - ``WTF_CSRF_CHECK_DEFAULT``
       - ``bool``
       - ``True``
-      - When using the CSRF protection extension, this contols whether
+      - When using the CSRF protection extension, this controls whether
         every view is protected by default.
     * - ``WTF_CSRF_SECRET_KEY``
       - ``Any``
@@ -50,7 +50,7 @@ Configuration Values
     * - ``WTF_CSRF_SSL_STRICT``
       - ``bool``
       - ``True``
-      - Determines to enforce the same orgin policy by checking that the referrer
+      - Determines to enforce the same origin policy by checking that the referrer
         matches the host. Only applies to HTTPS requests.
     * - ``WTF_I18N_ENABLED``
       - ``bool``

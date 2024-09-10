@@ -13,13 +13,13 @@ package manager.
     pip install quart-wtforms
 
 .. note::
-    If you do not have Python 3.7 or better an error message ``Python 3.7
+    If you do not have Python 3.8 or better an error message ``Python 3.8
     is the minimum required version`` will be displayed.
 
 Dependencies
 ------------
 
-Quart Uploads depends on the following packages, which will automatically
+Quart-WTF depends on the following packages, which will automatically
 be installed with the extension.
 
 - `Quart <https://quart.palletsprojects.com>`_

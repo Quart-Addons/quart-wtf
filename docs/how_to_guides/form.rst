@@ -239,8 +239,10 @@ It can also be used without Quart-Uploads by passing the extensions directly:
 
 .. code-block:: python
 
+    images = UploadSet('images', FE.Images)
+
     class UploadForm(FlaskForm):
         upload = FileField('image', validators=[
             FileRequired(),
-            FileAllowed(['jpg', 'png'], 'Images only!')
+            FileAllowed(images, 'Images only!')
         ])
