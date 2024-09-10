@@ -25,7 +25,6 @@
 				"ms-python.black-formatter",
 				"ms-python.autopep8",
 				"ms-python.isort",
-				"george-alisson.html-preview-vscode",
 				"streetsidesoftware.code-spell-checker"
 			]
 		}
