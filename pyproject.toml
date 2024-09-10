@@ -29,15 +29,15 @@ packages = [{include = "quart_wtf"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-quart = "^0.19"
-WTForms = "^3.0"
-quart-uploads = "^0.0.2"
+quart = ">=0.19"
+WTForms = ">=3.0"
+quart-uploads = ">=0.0.2"
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=7.2.2"
+pytest = "*"
 pytest-asyncio = "*"
-Sphinx = ">=3.4 <6.0.0"
-pydata-sphinx-theme = "^0.13.3"
+Sphinx = "*"
+pydata-sphinx-theme = "*"
 quart-babel = ">=1.0.2"
 
 [tool.black]
