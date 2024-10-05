@@ -1,30 +1,37 @@
 """
 quart_wtf.i18n
 """
+from __future__ import annotations
+from typing import Optional
+
 from babel import support
-from quart import request
-from quart_babel import get_locale  # type: ignore
-from quart_babel.utils import get_state  # type: ignore
-from wtforms.i18n import messages_path  # type: ignore
+from quart import current_app, request
+from quart_babel import get_locale
+from wtforms.i18n import messages_path
 
 
-def _get_translations() -> support.NullTranslations | None:
+def _get_translations() -> Optional[support.NullTranslations]:
+    """
+    Returns the correct gettext translations.
+    Copy from flask-babel with some modifications.
+    """
     if not request:
         return None
 
-    if not get_state(silent=True):
-        # quart-babel not configured.
+    # babel should be in extension for get_locale
+    if "babel" not in current_app.extensions:
         return None
 
-    support_translations = getattr(request, "wtforms_translations", None)
+    # pylint: disable=W0621
+    translations = getattr(request, "wtforms_translations", None)
 
-    if support_translations is None:
-        support_translations = support.Translations.load(
+    if translations is None:
+        translations = support.Translations.load(
             messages_path(), [get_locale()], domain="wtforms"
         )
-        request.wtforms_translations = support_translations  # type: ignore
+        request.wtforms_translations = translations   # type: ignore
 
-    return support_translations
+    return translations
 
 
 class Translations:
