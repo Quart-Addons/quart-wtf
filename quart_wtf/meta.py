@@ -1,6 +1,7 @@
 """
 quart_wtf.meta
 """
+from __future__ import annotations
 from typing import Any
 
 from quart import current_app, g, session
