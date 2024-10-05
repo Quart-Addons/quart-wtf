@@ -4,6 +4,12 @@
 Changelog
 ---------
 
+Version 1.0.3 - 10/05/24
+------------------------
+
+    - Updated i18n for changes to Quart-Babel.
+    - Updated package to include py.typed file.
+
 Version 1.0.2 - 9/10/24
 -----------------------
 
