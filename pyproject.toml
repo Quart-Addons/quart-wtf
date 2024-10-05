@@ -25,7 +25,10 @@ readme = "README.md"
 homepage = "https://github.com/Quart-Addons/quart-wtf"
 repository = "https://github.com/Quart-Addons/quart-wtf"
 documentation = "https://quart-wtf.readthedocs.io/en/latest/"
-packages = [{include = "quart_wtf"}]
+packages = [
+{include = "quart_wtf"},
+{include = "quart_wtf/py.typed"}
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8"
