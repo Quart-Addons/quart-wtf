@@ -170,7 +170,7 @@ Async Custom validators
 -----------------------
 
 The `QuartForm` class allows you to implement asynchronous [WTForms-like custom validators](https://wtforms.readthedocs.io/en/stable/validators/#custom-validators) 
-by adding `async_validate_{fieldname}` methods to your form classes:
+by adding `async_validators_{fieldname}` methods to your form classes:
 
 .. code-block:: python 
 
@@ -205,7 +205,7 @@ by adding `async_validate_{fieldname}` methods to your form classes:
             ]
         )
 
-        async def async_validate_email(self, field):
+        async def async_validators_email(self, field):
             """Asynchronous validator to check if email is already in-use
             """
             # replace this with your own code
