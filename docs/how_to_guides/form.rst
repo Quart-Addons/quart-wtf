@@ -15,12 +15,12 @@ to your app:
 .. code-block:: python
 
     from quart-wtf import QuartForm
-    from wtforms import TextField, PasswordField 
+    from wtforms import StringField, PasswordField 
     from wtforms.validators import DataRequired, Email, EqualTo
     from wtforms.widgets import PasswordInput
 
     class CreateAccountForm(QuartForm):
-        email = TextField(
+        email = StringField(
             'Email address',
             validators=[
                 DataRequired('Please enter your email address'),
@@ -170,17 +170,17 @@ Async Custom validators
 -----------------------
 
 The `QuartForm` class allows you to implement asynchronous [WTForms-like custom validators](https://wtforms.readthedocs.io/en/stable/validators/#custom-validators) 
-by adding `async_validate_{fieldname}` methods to your form classes:
+by adding `async_validators_{fieldname}` methods to your form classes (refer to [line](https://github.com/Quart-Addons/quart-wtf/blob/6d3b528aba5c6d0abc96e9626c81d552cfeee6e3/quart_wtf/form.py#L147)):
 
 .. code-block:: python 
 
     from quart_wtf import QuartForm
-    from wtforms import TextField, PasswordField, ValidationError
+    from wtforms import StringField, PasswordField, ValidationError
     from wtforms.validators import DataRequired, Email, EqualTo
 
 
     class CreateAccountForm(QuartForm):
-        email = TextField(
+        email = StringField(
             'Email address',
             validators=[
                 DataRequired('Please enter your email address'),
@@ -205,7 +205,7 @@ by adding `async_validate_{fieldname}` methods to your form classes:
             ]
         )
 
-        async def async_validate_email(self, field):
+        async def async_validators_email(self, field):
             """Asynchronous validator to check if email is already in-use
             """
             # replace this with your own code
