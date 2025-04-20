@@ -7,11 +7,11 @@ import pytest
 from quart import Quart, json, request
 from quart.typing import TestClientProtocol
 
-from wtforms import (  # type: ignore
+from wtforms import (
     FileField, HiddenField, IntegerField, StringField
 )
-from wtforms.validators import DataRequired  # type: ignore
-from wtforms.widgets import HiddenInput  # type: ignore
+from wtforms.validators import DataRequired
+from wtforms.widgets import HiddenInput
 
 from quart_wtf import QuartForm
 
@@ -38,9 +38,10 @@ async def test_populate_from_form(
     Populates formdata for the form.
     """
     @app.route("/", methods=["POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = await BasicForm().create_form()
         assert form.name.data == "form"
+        return ""
 
     await client.post("/", form={"name": "form"})
 
@@ -53,10 +54,11 @@ async def test_populate_from_files(
     Populates formdata for the form using files.
     """
     @app.route("/", methods=["POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = await BasicForm().create_form()
         assert form.avatar.data is not None
         assert form.avatar.data.filename == "quart.png"
+        return ""
 
     await client.post(
         "/", form={"name": "files", "avatar": (BytesIO(), "quart.png")}
@@ -71,9 +73,10 @@ async def test_populate_from_json(
     Populates formdata using json.
     """
     @app.route("/", methods=["POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = await BasicForm().create_form()
         assert form.name.data == "json"
+        return ""
 
     await client.post("/", json=json.dumps({"name": "json"}))
 
@@ -86,9 +89,10 @@ async def test_populate_manually(
     Manually populates the form.
     """
     @app.route("/", methods=["POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = await BasicForm.create_form(fromdata=request.args)
         assert form.name.data == "args"
+        return ""
 
     await client.post("/", query_string={"name": "args"})
 
@@ -99,9 +103,10 @@ async def test_populate_none(app: Quart, client: TestClientProtocol) -> None:
     Manually populates the form with no formdata.
     """
     @app.route("/", methods=["POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = BasicForm(formdata=None)
         assert form.name.data is None
+        return ""
 
     await client.post("/", data={"name": "ignore"})
 
@@ -114,11 +119,12 @@ async def test_validate_on_submit(
     Tests validate on submit for the form.
     """
     @app.route("/", methods=["POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = BasicForm()
         assert form.is_submitted
         assert not await form.validate_on_submit()
         assert "name" in form.errors
+        return ""
 
     await client.post("/")
 
@@ -131,10 +137,11 @@ async def test_no_validate_on_get(
     Form not valid on GET requet.
     """
     @app.route("/", methods=["GET", "POST"])
-    async def index() -> None:
+    async def index() -> str:
         form = BasicForm()
         assert not await form.validate_on_submit()
         assert "name" not in form.errors
+        return ""
 
     await client.get("/")
 

@@ -2,11 +2,12 @@
 tests.test_async_validators
 """
 import asyncio
+from typing import NoReturn
 import pytest
 from quart import Quart
 from quart.typing import TestClientProtocol
-from wtforms import StringField  # type: ignore
-from wtforms.validators import DataRequired, ValidationError  # type: ignore
+from wtforms import StringField
+from wtforms.validators import DataRequired, ValidationError
 
 from quart_wtf import QuartForm
 
@@ -18,7 +19,7 @@ class FormWithAsyncValidators(QuartForm):
     field1 = StringField()
     field2 = StringField(validators=[DataRequired()])
 
-    async def async_validate_field1(self, field) -> None:  # type: ignore
+    async def async_validate_field1(self, field: StringField) -> None:  
         """
         Async validator for field1.
         """
@@ -29,7 +30,7 @@ class FormWithAsyncValidators(QuartForm):
         if not field.data == 'value1':
             raise ValidationError('Field value is not correct.')
 
-    async def async_validate_field2(self, field) -> None:  # type: ignore
+    async def async_validate_field2(self, field: StringField) -> None:
         """
         Async validator for field2.
         """
@@ -47,7 +48,7 @@ class FormWithAsyncException(QuartForm):
     """
     field1 = StringField()
 
-    async def async_validate_field1(self, field):  # type: ignore
+    async def async_validate_field1(self, field: StringField) -> NoReturn:
         """
         Async validator for field1.
         """
@@ -64,7 +65,7 @@ async def test_async_validator_success(
     Test custom async validator success.
     """
     @app.route('/', methods=['POST'])
-    async def index() -> None:
+    async def index() -> str:
         form = await FormWithAsyncValidators().create_form()
         assert form.field1.data == 'value1'
         assert form.field2.data == 'value2'
@@ -79,6 +80,8 @@ async def test_async_validator_success(
 
         assert form.field2.data == 'value2'
         assert 'field2' not in form.errors
+        
+        return ""
 
     await client.post('/', form={'field1': 'value1', 'field2': 'value2'})
 
@@ -91,7 +94,7 @@ async def test_async_validator_error(
     Tests async validator error.
     """
     @app.route('/', methods=['POST'])
-    async def index() -> None:
+    async def index() -> str:
         form = await FormWithAsyncValidators().create_form()
         assert form.field1.data == 'xxx1'
         assert form.field2.data == 'xxx2'
@@ -108,6 +111,8 @@ async def test_async_validator_error(
 
         assert len(form.errors['field2']) == 1
         assert form.errors['field2'][0] == 'Field value is not correct.'
+        
+        return ""
 
     await client.post('/', form={'field1': 'xxx1', 'field2': 'xxx2'})
 
@@ -120,7 +125,7 @@ async def test_data_required_error(
     Tests data required error using async.
     """
     @app.route('/', methods=['POST'])
-    async def index() -> None:
+    async def index() -> str:
         form = await FormWithAsyncValidators().create_form()
         assert form.field1.data == 'xxx1'
         assert form.field2.data in ["", None]  # WTForms >= 3.0.0a1 is None
@@ -136,6 +141,8 @@ async def test_data_required_error(
 
         assert len(form.errors['field2']) == 1
         assert form.errors['field2'][0] == 'This field is required.'
+        
+        return ""
 
     await client.post('/', form={'field1': 'xxx1'})
 
@@ -148,7 +155,7 @@ async def test_async_validator_exception(
     Test async validator exception.
     """
     @app.route('/', methods=['POST'])
-    async def index() -> None:
+    async def index() -> str:
         form = await FormWithAsyncException().create_form()
         try:
             await form.validate()
@@ -156,5 +163,6 @@ async def test_async_validator_exception(
             assert err.args[0] == 'test'
         else:
             assert False
+        return ""
 
     await client.post('/', form={'field1': 'xxx1', 'field2': 'xxx2'})

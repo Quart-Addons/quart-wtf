@@ -4,6 +4,11 @@
 Changelog
 ---------
 
+Version 1.0.4  - 4/19/25
+-----------------------
+
+    - Updated typing, notably on Form.create_form
+
 Version 1.0.3 - 10/05/24
 ------------------------
 

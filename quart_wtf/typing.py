@@ -7,10 +7,9 @@ from quart import Blueprint
 
 from werkzeug.datastructures import (
     CombinedMultiDict,
-    ImmutableDict,
     MultiDict
 )
 
-FormData = Union[CombinedMultiDict, ImmutableDict, MultiDict]
+FormData = Union[CombinedMultiDict, MultiDict]
 
 ViewsType = Union[str, Blueprint, Callable[..., Awaitable[Any]]]
