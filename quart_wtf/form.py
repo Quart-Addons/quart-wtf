@@ -3,11 +3,15 @@ quart_wtf.form
 """
 from __future__ import annotations
 import asyncio
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Literal
+try:
+    from typing import Self  # type: ignore
+except ImportError:
+    from typing_extensions import Self
 
 from markupsafe import Markup
-from wtforms import Form, Field, ValidationError  # type: ignore
-from wtforms.widgets import HiddenInput  # type: ignore
+from wtforms import Form, Field, ValidationError
+from wtforms.widgets import HiddenInput
 
 from .meta import QuartFormMeta
 from .typing import FormData
@@ -16,7 +20,7 @@ from .utils import _is_submitted, _get_formdata
 _Auto = object()
 
 
-class QuartForm(Form):  # type: ignore
+class QuartForm(Form):
     """
     Quart specific subclass of WTForms :class:`~wtforms.form.Form`.
     To populate from submitted formdata use the ```.create_form``` class
@@ -65,7 +69,7 @@ class QuartForm(Form):  # type: ignore
         data: Dict | None = None,
         meta: Dict | None = None,
         **kwargs: Dict[str, Any]
-    ) -> QuartForm:
+    ) -> Self:
         """
         This creates a new instance of the form and can only be called within
         your applications routes.
@@ -114,7 +118,7 @@ class QuartForm(Form):  # type: ignore
         else:
             formdata = None
 
-        return cls(formdata, obj, prefix, data, meta, **kwargs)
+        return cls(formdata, obj, prefix, data, meta, **kwargs)  
 
     async def _validate_async(
             self, validator: Callable, field: Field
@@ -125,11 +129,11 @@ class QuartForm(Form):  # type: ignore
         try:
             await validator(self, field)
         except ValidationError as error:
-            field.errors.append(error.args[0])
+            field.errors = [error.args[0], *field.errors]
             return False
         return True
 
-    async def validate(
+    async def validate(  # type: ignore
             self, extra_validators: Dict[str, Any] | None = None
     ) -> bool:
         # pylint: disable=W0236

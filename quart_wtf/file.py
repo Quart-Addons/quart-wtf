@@ -3,26 +3,30 @@ quart_wtf.file
 """
 from __future__ import annotations
 from collections import abc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Generator, List, Union
+from typing_extensions import override
 
 from quart.datastructures import FileStorage
-from wtforms import FileField as _FileField  # type: ignore
+from wtforms import FileField as _FileField, Field as _Field
 
-from wtforms.validators import (  # type: ignore
+from wtforms.validators import (
     DataRequired,
     StopValidation,
     ValidationError
 )
 
+from quart_wtf.form import QuartForm
+
 if TYPE_CHECKING:
-    from quart_uploads import UploadSet  # type: ignore
+    from quart_uploads import UploadSet
 
 
-class FileField(_FileField):  # type: ignore
+class FileField(_FileField):
     """
     Werkzeug-aware subclass of :class:`wtforms.fields.FileField`.
     """
-    def process_formdata(self, valuelist) -> None:  # type: ignore
+    
+    def process_formdata(self, valuelist: Any) -> None:
         """
         This function processes the formdata for the `FileField`.
         """
@@ -32,10 +36,10 @@ class FileField(_FileField):  # type: ignore
         if data is not None:
             self.data = data  # pylint: disable=W0201
         else:
-            self.raw_data = ()
+            self.raw_data = []
 
 
-class FileRequired(DataRequired):  # type: ignore
+class FileRequired(DataRequired):
     """
     Validates that the data is a :class:`~quart.datastructures.FileStorage`
     object.
@@ -45,7 +49,7 @@ class FileRequired(DataRequired):  # type: ignore
     Argument:
         message (``str``): Error message.
     """
-    def __call__(self, form, field) -> None:  # type: ignore
+    def __call__(self, form: Any, field: _Field) -> None:
         if not (isinstance(field.data, FileStorage) and field.data):
             raise StopValidation(
                 self.message or field.gettext("This field is required.")
@@ -67,7 +71,7 @@ class FileAllowed:
         :class:`~quart_uploads.UploadSet`
     """
     def __init__(
-            self, upload_set: UploadSet, message: str | None = None
+            self, upload_set: Union[UploadSet, abc.Iterable[str]], message: str | None = None
     ) -> None:
         self.upload_set = upload_set
         self.message = message
@@ -76,6 +80,11 @@ class FileAllowed:
         if not (isinstance(field.data, FileStorage) and field.data):
             return
 
+        if field.data.filename is None:
+            raise StopValidation(
+                self.message
+                or field.gettext("File does not have a filename")
+            )
         filename = field.data.filename.lower()
 
         if isinstance(self.upload_set, abc.Iterable):

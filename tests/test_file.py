@@ -2,13 +2,17 @@
 tests.test_file
 """
 from typing import Any
+import sys
 import pytest
 from quart import Quart
 from quart.datastructures import FileStorage
 from werkzeug.datastructures import MultiDict
-from wtforms import FileField as BaseFileField  # type: ignore
+from wtforms import FileField as BaseFileField
 
-from quart_uploads import UploadSet, configure_uploads  # type: ignore
+if sys.version_info < (3, 10):
+    pytest.skip("Quart-Uploads requires Python 3.10 or greater", allow_module_level=True)
+
+from quart_uploads import UploadSet, configure_uploads
 from quart_wtf import QuartForm
 from quart_wtf.file import FileAllowed, FileField, FileRequired, FileSize
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quart-wtforms"
-version = "1.0.3"
+version = "1.0.4"
 description = "Simple Integration of Quart and WTForms."
 authors = ["Chris Rood <quart.addons@gmail.com>"]
 license = "MIT"
@@ -34,7 +34,9 @@ packages = [
 python = ">=3.8"
 quart = ">=0.19"
 WTForms = ">=3.0"
+types-WTForms = ">=3.2.1.20241025"
 quart-uploads = ">=0.0.2"
+typing-extensions = { version=">=4.0.1", python = "<3.11" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -73,6 +75,10 @@ warn_redundant_casts = true
 warn_return_any = false
 warn_unused_configs = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "typing"
+ignore_errors = true
 
 [build-system]
 requires = ["poetry-core"]

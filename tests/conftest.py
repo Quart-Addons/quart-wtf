@@ -1,6 +1,7 @@
 """
 tests.conftest
 """
+from typing import Union
 import pytest
 from quart import Quart as _Quart
 from quart.typing import ResponseReturnValue, ResponseTypes, TestClientProtocol
@@ -12,7 +13,7 @@ class Quart(_Quart):
     Subclass of Quart for test Quart-WTF.
     """
     async def make_response(
-            self, result: ResponseReturnValue | HTTPException
+            self, result: Union[ResponseReturnValue, HTTPException]
     ) -> ResponseTypes:
         """
         Overload meth to make sure the result is never ``None``.

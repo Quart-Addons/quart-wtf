@@ -21,8 +21,8 @@ def app(app: Quart) -> Quart:  # pylint: disable=W0621
     CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
-    async def index() -> None:
-        pass
+    async def index() -> str:
+        return ""
 
     @app.after_request
     async def add_csrf_header(response: Response) -> Response:
@@ -150,12 +150,13 @@ async def test_form_csrf_short_circuit(
     Tests CSRF short circuit.
     """
     @app.route("/skip", methods=["POST"])
-    async def skip() -> None:
+    async def skip() -> str:
         assert g.get("csrf_valid")
         # don't pass the token, then validate the form
         # this would fail if CSRFProtect didn't run
         form = QuartForm(formdata=None)
         assert await form.validate()
+        return ""
 
     response = await client.post("/")
     token = response.headers["X-CSRF-Token"]
@@ -170,7 +171,7 @@ async def test_exempt_view(
     """
     Test exempt view with CSRF.
     """
-    @app.route("/exempt", methods=["POST"])
+    @app.route("/exempt", methods=["POST"])  # type: ignore
     @csrf.exempt  # typing: ignore
     async def exempt() -> None:
         pass
@@ -190,7 +191,7 @@ async def test_manual_protect(
     """
     Test manual CSRF protection.
     """
-    @app.route("/manual", methods=["GET", "POST"])
+    @app.route("/manual", methods=["GET", "POST"])  # type: ignore
     @csrf.exempt  # typing: ignore
     async def manual() -> None:
         await csrf.protect()
@@ -213,8 +214,8 @@ async def test_exempt_blueprint(
     csrf.exempt(bp)
 
     @bp.route("/", methods=["POST"])
-    async def index() -> None:
-        pass
+    async def index() -> str:
+        return ""
 
     app.register_blueprint(bp)
     response = await client.post("/exempt/")
@@ -228,7 +229,7 @@ async def test_error_handler(app: Quart, client: TestClientProtocol) -> None:
     """
     @app.errorhandler(CSRFError)
     async def handle_csrf_error(error: CSRFError) -> str:
-        return error.description
+        return error.description or ""
 
     response = await client.post("/")
     assert await response.get_data(as_text=True) == TOKEN_MISSING
