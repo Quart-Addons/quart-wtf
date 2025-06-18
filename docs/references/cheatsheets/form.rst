@@ -35,12 +35,12 @@ Creating Forms:
 
 .. code-block:: python
 
-    from quart-wtf import QuartForm
+    from quart_wtf import QuartForm
     from wtforms import TextField, PasswordField 
     from wtforms.validators import DataRequired, Email, EqualTo
     from wtforms.widgets import PasswordInput
 
-    class CreateAccountForm(StarletteForm):
+    class CreateAccountForm(QuartForm):
         email = TextField(
             'Email address',
             validators=[

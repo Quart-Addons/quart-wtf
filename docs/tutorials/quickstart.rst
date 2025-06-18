@@ -15,7 +15,7 @@ Quart-WTF provides your Quart application integration with WTForms. For example:
 
 .. code-block:: python
 
-    from quart-wtf import QuartForm
+    from quart_wtf import QuartForm
     from wtforms import StringField
     from wtforms.validators import DataRequired
 
@@ -58,7 +58,7 @@ on POST requests.
 
     @app.route('/', methods=['GET', 'POST'])
     async def index():
-        form = await MyForm.from_formdata()
+        form = await MyForm.create_form()
 
         if await form.validate_on_submit():
             return redirect('/success')
@@ -75,7 +75,7 @@ Validating the request in your routes can be done as shown below. Note that
 
     @app.route('/', methods=['GET', 'POST'])
     async def index():
-        form = await MyForm.from_formdata()
+        form = await MyForm.create_form()
 
         if await form.validate_on_submit():
             return redirect('/success')
