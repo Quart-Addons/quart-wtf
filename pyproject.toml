@@ -31,7 +31,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.9"
 quart = ">=0.19"
 WTForms = ">=3.0"
 quart-uploads = ">=0.0.2"
