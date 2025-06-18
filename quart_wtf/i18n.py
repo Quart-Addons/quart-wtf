@@ -1,7 +1,6 @@
 """
 quart_wtf.i18n
 """
-from __future__ import annotations
 from typing import Optional
 
 from babel import support
