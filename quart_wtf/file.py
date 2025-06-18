@@ -15,7 +15,7 @@ from wtforms.validators import (  # type: ignore
 )
 
 if TYPE_CHECKING:
-    from quart_uploads import UploadSet  # type: ignore
+    from quart_uploads import UploadSet
 
 
 class FileField(_FileField):  # type: ignore
