@@ -1,7 +1,7 @@
 """
 quart_wtf.typing
 """
-from typing import Any, Awaitable, Callable, Union
+from typing import Any, Awaitable, Callable, TypeVar, Union
 
 from quart import Blueprint
 
@@ -13,4 +13,4 @@ from werkzeug.datastructures import (
 
 FormData = Union[CombinedMultiDict, ImmutableDict, MultiDict]
 
-ViewsType = Union[str, Blueprint, Callable[..., Awaitable[Any]]]
+ViewsType = TypeVar("ViewsType", str, Blueprint, Callable[..., Awaitable[Any]])
