@@ -6,9 +6,9 @@ from collections import abc
 from typing import TYPE_CHECKING
 
 from quart.datastructures import FileStorage
-from wtforms import FileField as _FileField  # type: ignore
+from wtforms import FileField as _FileField
 
-from wtforms.validators import (  # type: ignore
+from wtforms.validators import (
     DataRequired,
     StopValidation,
     ValidationError
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from quart_uploads import UploadSet
 
 
-class FileField(_FileField):  # type: ignore
+class FileField(_FileField):
     """
     Werkzeug-aware subclass of :class:`wtforms.fields.FileField`.
     """
@@ -32,10 +32,10 @@ class FileField(_FileField):  # type: ignore
         if data is not None:
             self.data = data  # pylint: disable=W0201
         else:
-            self.raw_data = ()
+            self.raw_data = list()
 
 
-class FileRequired(DataRequired):  # type: ignore
+class FileRequired(DataRequired):
     """
     Validates that the data is a :class:`~quart.datastructures.FileStorage`
     object.

@@ -5,9 +5,9 @@ from typing import Any
 
 from quart import current_app, g, session
 from werkzeug.utils import cached_property
-from wtforms import ValidationError  # type: ignore
-from wtforms.csrf.core import CSRF  # type: ignore
-from wtforms.meta import DefaultMeta  # type: ignore
+from wtforms import ValidationError
+from wtforms.csrf.core import CSRF
+from wtforms.meta import DefaultMeta
 
 from .const import (
     DEFAULT_ENABLED,
@@ -23,7 +23,7 @@ except ImportError:
     translations = None  # quart_babel not installed.
 
 
-class _QuartFormCSRF(CSRF):  # type: ignore
+class _QuartFormCSRF(CSRF):
     meta = None
 
     def setup_form(self, form):  # type: ignore
@@ -56,7 +56,7 @@ class _QuartFormCSRF(CSRF):  # type: ignore
             raise
 
 
-class QuartFormMeta(DefaultMeta):  # type: ignore
+class QuartFormMeta(DefaultMeta):
     """
     Quart specific meta class for WTForms.
     """

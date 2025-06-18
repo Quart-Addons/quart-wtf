@@ -12,7 +12,7 @@ from quart import (
 )
 
 from werkzeug.exceptions import BadRequest
-from wtforms import ValidationError  # type: ignore
+from wtforms import ValidationError
 
 from .const import (
     DEFAULT_ENABLED,

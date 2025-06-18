@@ -3,11 +3,11 @@ quart_wtf.form
 """
 from __future__ import annotations
 import asyncio
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Mapping, Sequence
 
 from markupsafe import Markup
-from wtforms import Form, Field, ValidationError  # type: ignore
-from wtforms.widgets import HiddenInput  # type: ignore
+from wtforms import Form, Field, ValidationError
+from wtforms.widgets import HiddenInput
 
 from .meta import QuartFormMeta
 from .typing import FormData
@@ -16,7 +16,7 @@ from .utils import _is_submitted, _get_formdata
 _Auto = object()
 
 
-class QuartForm(Form):  # type: ignore
+class QuartForm(Form):
     """
     Quart specific subclass of WTForms :class:`~wtforms.form.Form`.
     To populate from submitted formdata use the ```.create_form``` class
@@ -123,15 +123,18 @@ class QuartForm(Form):  # type: ignore
         """
         Execute async validators.
         """
+        errors = list(field.errors)
+
         try:
             await validator(self, field)
         except ValidationError as error:
-            field.errors.append(error.args[0])
+            errors.append(error.args[0])
+            field.errors = tuple(errors)
             return False
         return True
 
     async def validate(
-            self, extra_validators: Dict[str, Any] | None = None
+            self, extra_validators: Mapping[str, Sequence[Any]] | None = None
     ) -> bool:
         # pylint: disable=W0236
         """

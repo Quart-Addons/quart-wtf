@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
 from quart import current_app, g, request, session
 from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
-from wtforms import ValidationError  # type: ignore
+from wtforms import ValidationError
 
 from .const import (
     CSRF_NOT_CONFIGURED,
