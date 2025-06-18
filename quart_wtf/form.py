@@ -109,8 +109,9 @@ class QuartForm(Form):  # type: ignore
             data as parameters. Overwrites any duplicate keys in
             ``data``. Only used if ``formdata`` is not passed.
         """
-        if formdata is _Auto and _is_submitted():
-            formdata = await _get_formdata()
+        if _is_submitted():
+            if formdata is _Auto:
+                formdata = await _get_formdata()
         else:
             formdata = None
 
