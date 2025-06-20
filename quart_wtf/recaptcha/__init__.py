@@ -2,11 +2,11 @@
 quart_wtf.recaptcha
 """
 from .fields import RecaptchaField
-from .validators import async_validate_Recaptcha
+from .validators import recaptcha_validation
 from .widgets import RecaptchaWidget
 
 __all__ = (
     "RecaptchaField",
-    "async_validate_Recaptcha",
+    "recaptcha_validation",
     "RecaptchaWidget"
 )

@@ -3,15 +3,18 @@ quart_wtf.form
 """
 from __future__ import annotations
 import asyncio
-from typing import Any, Callable, Dict, Mapping, Sequence
+from typing import Any, Callable, Dict, List
 
 from markupsafe import Markup
+from quart import request
+from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
 from wtforms import Form, Field, ValidationError
 from wtforms.widgets import HiddenInput
 
+from .const import SUBMIT_METHODS
 from .meta import QuartFormMeta
 from .typing import FormData
-from .utils import _is_submitted, _get_formdata
+
 
 _Auto = object()
 
@@ -109,9 +112,20 @@ class QuartForm(Form):
             data as parameters. Overwrites any duplicate keys in
             ``data``. Only used if ``formdata`` is not passed.
         """
-        if _is_submitted():
+        if cls.is_submitted():
             if formdata is _Auto:
-                formdata = await _get_formdata()
+                files = await request.files
+                form = await request.form
+
+                if files:
+                    formdata = CombinedMultiDict((files, form))
+                elif form:
+                    formdata = form
+                elif request.is_json:
+                    json = await request.json
+                    formdata = ImmutableMultiDict(json)
+                else:
+                    formdata = None
         else:
             formdata = None
 
@@ -134,7 +148,7 @@ class QuartForm(Form):
         return True
 
     async def validate(
-            self, extra_validators: Mapping[str, Sequence[Any]] | None = None
+            self, extra_validators: Dict[str, List[Callable]] = None
     ) -> bool:
         # pylint: disable=W0236
         """
@@ -143,15 +157,23 @@ class QuartForm(Form):
         Arguments:
             extra_validators: Extra form validators.
         """
+        if extra_validators is not None:
+            extra = extra_validators.copy()
+        else:
+            extra = {}
+
         async_validators = {}
-        async_found = []
+        completed = []
+
+        def record_status(_, field):
+            completed.append(field.name)
 
         # Check for inline async validators
         for name, field in self._fields.items():
-            func = getattr(self.__class__, f'async_validators_{name}', None)
+            func = getattr(self.__class__, f'async_validator_{name}', None)
             if func:
                 async_validators[name] = (func, field)
-                async_found.append(name)
+                extra.setdefault(name, []).append(record_status)
 
         # execute non-async validators
         success = super().validate(extra_validators=extra_validators)
@@ -159,7 +181,7 @@ class QuartForm(Form):
         # execute async validators
         if async_validators:
             tasks = [self._validate_async(*async_validators[name]) for
-                     name in async_found]
+                     name in completed]
             async_results = await asyncio.gather(*tasks)
 
             if False in async_results:
@@ -167,13 +189,13 @@ class QuartForm(Form):
 
         return success
 
-    @property
-    def is_submitted(self) -> bool:
+    @staticmethod
+    def is_submitted() -> bool:
         """
         Consider the form submitted if there is an active request and
         the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
         """
-        return _is_submitted()
+        return bool(request) and request.method in SUBMIT_METHODS
 
     async def validate_on_submit(
             self, extra_validators: Dict[str, Any] | None = None
@@ -186,7 +208,7 @@ class QuartForm(Form):
         Arguments:
             extra_validators: Extra form validators.
         """
-        return self.is_submitted and \
+        return self.is_submitted() and \
             await self.validate(extra_validators=extra_validators)
 
     def hidden_tag(self, *fields) -> Markup:  # type: ignore

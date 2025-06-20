@@ -9,8 +9,7 @@ import typing as t
 from urllib.parse import urlparse
 
 from itsdangerous import BadData, SignatureExpired, URLSafeTimedSerializer
-from quart import current_app, g, request, session
-from werkzeug.datastructures import CombinedMultiDict, ImmutableMultiDict
+from quart import current_app, g, session
 from wtforms import ValidationError
 
 from .const import (
@@ -18,41 +17,14 @@ from .const import (
     FIELD_NAME_REQUIRED,
     SECRET_KEY_REQUIRED,
     SESSION_TOKEN_MISSING,
-    SUBMIT_METHODS,
     TOKEN_EXPIRED,
     TOKEN_INVALID,
     TOKEN_MISSING,
     TOKEN_NO_MATCH
 )
 
-from .typing import FormData
 
 logger = logging.getLogger("Quart-WTF")
-
-
-def _is_submitted() -> bool:
-    """
-    Consider the form submitted if there is an active request and
-    the method is ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
-    """
-    return bool(request) and request.method in SUBMIT_METHODS
-
-
-async def _get_formdata() -> FormData | None:
-    """
-    Gets the formdata from `quart.request`.
-    """
-    files = await request.files
-    form = await request.form
-
-    if files:
-        return CombinedMultiDict((files, form))
-    if form:
-        return form
-    if request.is_json:
-        json = await request.json
-        return ImmutableMultiDict(json)
-    return None
 
 
 def _get_config(
