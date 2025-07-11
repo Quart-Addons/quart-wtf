@@ -18,6 +18,7 @@ def app(app: Quart) -> Quart:  # pylint: disable=W0621
     """
     App fixture for testing the CSRF extension.
     """
+    app.secret_key = "some_secret_you_would_not_guess"
     CSRFProtect(app)
 
     @app.route("/", methods=["GET", "POST"])
@@ -65,13 +66,13 @@ async def test_protect(app: Quart, client: TestClientProtocol) -> None:
     app.config["WTF_CSRF_ENABLED"] = False
     response = await client.post("/")
     data = await response.get_data()
-    assert data == b""  # type: ignore
+    assert data == b""
     app.config["WTF_CSRF_ENABLED"] = True
 
     app.config["WTF_CSRF_CHECK_DEFAULT"] = False
     response = await client.post("/")
     data = await response.get_data()
-    assert data == b""  # type: ignore
+    assert data == b""
     app.config["WTF_CSRF_CHECK_DEFAULT"] = True
 
     response = await client.options("/")

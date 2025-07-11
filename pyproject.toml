@@ -36,6 +36,7 @@ quart = ">=0.19"
 WTForms = ">=3.0"
 quart-uploads = ">=0.0.2"
 types-wtforms = ">=3.2.1.20250602"
+quart-flask-patch = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"

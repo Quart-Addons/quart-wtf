@@ -28,7 +28,7 @@ def app() -> Quart:
     Returns a Quart app for testing.
     """
     app = Quart(__name__)
-    app.config['SECRET_KEY'] = __name__
+    secret_key = __name__
     return app
 
 

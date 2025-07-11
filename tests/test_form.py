@@ -144,6 +144,8 @@ async def test_hidden_tag(app: Quart) -> None:
     """
     Tests custom hidden tag rendering.
     """
+    app.secret_key = 'hidden_tag_secret'
+
     class Form(BasicForm):
         """
         Form for testing hidden tag.

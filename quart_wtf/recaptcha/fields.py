@@ -1,10 +1,11 @@
 """
 quart_forms.recaptcha.fields
 """
-from typing import Any, Dict, List
+from typing import Any, List
 
 from wtforms.fields import Field
 
+from .validators import Recaptcha
 from .widgets import RecaptchaWidget
 
 
@@ -24,6 +25,7 @@ class RecaptchaField(Field):
             self,
             label: str = "",
             validators: List[Any] | None = None,
-            **kwargs: Dict[str, Any]
+            **kwargs: Any
     ) -> None:
+        validators = validators or [Recaptcha()]
         super().__init__(label, validators, **kwargs)

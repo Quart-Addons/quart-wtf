@@ -2,6 +2,7 @@
 quart.wtf.recaptcha.widgets
 """
 from urllib.parse import urlencode
+from typing import Any
 
 from quart import current_app
 from markupsafe import Markup
@@ -36,13 +37,15 @@ class RecaptchaWidget:
             script += "?" + urlencode(params)
         attrs = current_app.config.get("RECAPTCHA_DATA_ATTRS", {})
         attrs["sitekey"] = public_key
-        snippet = " ".join(f'data-{k}="{attrs[k]}"' for k in attrs)  # noqa: B028, B907
+        snippet = " ".join(f'data-{k}="{attrs[k]}"' for k in attrs)
         div_class = current_app.config.get("RECAPTCHA_DIV_CLASS")
         if not div_class:
             div_class = RECAPTCHA_DIV_CLASS_DEFAULT
         return Markup(RECAPTCHA_TEMPLATE % (script, div_class, snippet))
 
-    def __call__(self, field, error=None, **kwargs) -> Markup:
+    def __call__(
+            self, field: Any, error: Any | None = None, **kwargs: Any
+    ) -> Markup:
         """Returns the recaptcha input HTML."""
 
         try:

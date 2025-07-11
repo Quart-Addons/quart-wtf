@@ -6,12 +6,21 @@ from typing import Any
 import pytest
 from quart import Quart, g, request, session
 from quart.typing import TestClientProtocol
-from wtforms import ValidationError  # type: ignore
+from wtforms import ValidationError
 
 from quart_wtf import QuartForm
 from quart_wtf.const import (TOKEN_EXPIRED, TOKEN_INVALID, TOKEN_MISSING,
                              TOKEN_NO_MATCH, SESSION_TOKEN_MISSING)
 from quart_wtf.utils import generate_csrf, validate_csrf, logger
+
+
+@pytest.fixture
+def app(app: Quart) -> Quart:
+    """
+    Test app for CSRF form
+    """
+    app.secret_key = 'CRSF_FORM_SECRET'
+    return app
 
 
 @pytest.mark.asyncio
